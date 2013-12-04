@@ -4,5 +4,6 @@ include:
     - core
     - fetch
     - contrib.openstack
+    - contrib.storage.linux
     - contrib.hahelpers
     - payload.execd
