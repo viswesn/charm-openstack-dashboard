@@ -80,4 +80,4 @@ options:
         description: Use Ubuntu theme for the dashboard.
     secret:
         type: string
-        descriptions: Secret for Horizon to use when securing internal data; set this when using multiple dashboard units.
+        description: Secret for Horizon to use when securing internal data; set this when using multiple dashboard units.
