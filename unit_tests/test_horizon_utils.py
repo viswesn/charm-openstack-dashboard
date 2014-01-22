@@ -20,6 +20,7 @@ TO_PATCH = [
 
 
 class TestHorizonUtils(CharmTestCase):
+
     def setUp(self):
         super(TestHorizonUtils, self).setUp(horizon_utils, TO_PATCH)
 

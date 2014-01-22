@@ -40,6 +40,7 @@ def patch_open():
 
 
 class TestHorizonContexts(CharmTestCase):
+
     def setUp(self):
         super(TestHorizonContexts, self).setUp(horizon_contexts, TO_PATCH)
         self.config.side_effect = self.test_config.get
@@ -67,7 +68,7 @@ class TestHorizonContexts(CharmTestCase):
                 call('key')
             ])
         # Security check on key permissions
-        _chmod.assert_called_with('/etc/ssl/private/dashboard.key', 0600)
+        _chmod.assert_called_with('/etc/ssl/private/dashboard.key', 0o600)
 
     def test_ApacheSSLContext_disabled(self):
         self.get_cert.return_value = (None, None)

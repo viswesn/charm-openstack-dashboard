@@ -27,7 +27,12 @@ TO_PATCH = [
     'install_ca_cert',
     'unit_get',
     'log',
-    'execd_preinstall']
+    'execd_preinstall',
+    'b64decode']
+
+
+def passthrough(value):
+    return value
 
 
 class TestHorizonHooks(CharmTestCase):
@@ -35,6 +40,7 @@ class TestHorizonHooks(CharmTestCase):
     def setUp(self):
         super(TestHorizonHooks, self).setUp(hooks, TO_PATCH)
         self.config.side_effect = self.test_config.get
+        self.b64decode.side_effect = passthrough
 
     def _call_hook(self, hookname):
         hooks.hooks.execute([
