@@ -182,7 +182,6 @@ LOGGING = {
         'syslog': {
             'level': 'INFO',
             'class': 'logging.handlers.SysLogHandler',
-            'formatter': 'verbose'
         },
 	{% endif %}
         'console': {
