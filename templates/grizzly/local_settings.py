@@ -183,7 +183,7 @@ LOGGING = {
             'level': 'INFO',
             'class': 'logging.handlers.SysLogHandler',
             'formatter': 'verbose'
-        }
+        },
 	{% endif %}
         'console': {
             # Set the level to "DEBUG" for verbose output logging.
