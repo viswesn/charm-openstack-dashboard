@@ -181,7 +181,7 @@ LOGGING = {
 	{% if use_syslog %}
         'syslog': {
             'level': 'INFO',
-            'class': 'logging.handlers.SysLogHandler'
+            'class': 'logging.handlers.SysLogHandler',
             'formatter': 'verbose'
         }
 	{% endif %}
