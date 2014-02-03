@@ -217,6 +217,14 @@ LOGGING = {
             {% endif %}
             'propagate': False,
         },
+        'openstack_auth': {
+            {% if use_syslog %}
+            'handlers': ['syslog'],
+            {% else %}
+            'handlers': ['console'],
+            {% endif %}
+            'propagate': False,
+        },
         'novaclient': {
             {% if use_syslog %}
             'handlers': ['syslog'],
