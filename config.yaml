@@ -26,6 +26,12 @@ options:
         description: |
           Default role for Horizon operations that will be created in
           Keystone upon introduction of an identity-service relation.
+    use-syslog:
+        type: boolean
+        default: False
+        description: |
+            By default, all services will log into their corresponding log files.
+            Setting this to True will force all services to log to the syslog.
     vip:
         type: string
         description: "Virtual IP to use to front openstack dashboard ha configuration"

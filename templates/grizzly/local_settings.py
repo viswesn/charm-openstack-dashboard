@@ -1,8 +1,10 @@
 import os
 
 from django.utils.translation import ugettext_lazy as _
-
 from openstack_dashboard import exceptions
+{% if use_syslog %}
+from logging.handlers import SysLogHandler
+{% endif %}
 
 DEBUG = {{ debug }}
 TEMPLATE_DEBUG = DEBUG
@@ -176,6 +178,13 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'django.utils.log.NullHandler',
         },
+	{% if use_syslog %}
+        'syslog': {
+            'level': 'INFO',
+            'class': 'logging.handlers.SysLogHandler'
+            'formatter': 'verbose'
+        }
+	{% endif %}
         'console': {
             # Set the level to "DEBUG" for verbose output logging.
             'level': 'INFO',
@@ -194,27 +203,51 @@ LOGGING = {
             'propagate': False,
         },
         'horizon': {
+            {% if use_syslog %}
+            'handlers': ['syslog'],
+            {% else %}
             'handlers': ['console'],
+            {% endif %}
             'propagate': False,
         },
         'openstack_dashboard': {
+            {% if use_syslog %}
+            'handlers': ['syslog'],
+            {% else %}
             'handlers': ['console'],
+            {% endif %}
             'propagate': False,
         },
         'novaclient': {
+            {% if use_syslog %}
+            'handlers': ['syslog'],
+            {% else %}
             'handlers': ['console'],
+            {% endif %}
             'propagate': False,
         },
         'keystoneclient': {
+            {% if use_syslog %}
+            'handlers': ['syslog'],
+            {% else %}
             'handlers': ['console'],
+            {% endif %}
             'propagate': False,
         },
         'glanceclient': {
+            {% if use_syslog %}
+            'handlers': ['syslog'],
+            {% else %}
             'handlers': ['console'],
+            {% endif %}
             'propagate': False,
         },
         'nose.plugins.manager': {
+            {% if use_syslog %}
+            'handlers': ['syslog'],
+            {% else %}
             'handlers': ['console'],
+            {% endif %}
             'propagate': False,
         }
     }

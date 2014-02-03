@@ -78,42 +78,48 @@ class TestHorizonContexts(CharmTestCase):
         self.assertEquals(horizon_contexts.HorizonContext()(),
                           {'compress_offline': True, 'debug': False,
                            'default_role': 'Member', 'webroot': '/horizon',
-                           'ubuntu_theme': True, 'secret': 'secret'})
+                           'ubuntu_theme': True, 'use_syslog': False,
+                           'secret': 'secret'})
 
     def test_HorizonContext_debug(self):
         self.test_config.set('debug', 'yes')
         self.assertEquals(horizon_contexts.HorizonContext()(),
                           {'compress_offline': True, 'debug': True,
                            'default_role': 'Member', 'webroot': '/horizon',
-                           'ubuntu_theme': True, 'secret': 'secret'})
+                           'ubuntu_theme': True, 'use_syslog': False,
+                           'secret': 'secret'})
 
     def test_HorizonContext_theme(self):
         self.test_config.set('ubuntu-theme', False)
         self.assertEquals(horizon_contexts.HorizonContext()(),
                           {'compress_offline': True, 'debug': False,
                            'default_role': 'Member', 'webroot': '/horizon',
-                           'ubuntu_theme': False, 'secret': 'secret'})
+                           'ubuntu_theme': False, 'use_syslog': False,
+                           'secret': 'secret'})
 
     def test_HorizonContext_compression(self):
         self.test_config.set('offline-compression', 'no')
         self.assertEquals(horizon_contexts.HorizonContext()(),
                           {'compress_offline': False, 'debug': False,
                            'default_role': 'Member', 'webroot': '/horizon',
-                           'ubuntu_theme': True, 'secret': 'secret'})
+                           'ubuntu_theme': True, 'use_syslog': False,
+                           'secret': 'secret'})
 
     def test_HorizonContext_role(self):
         self.test_config.set('default-role', 'foo')
         self.assertEquals(horizon_contexts.HorizonContext()(),
                           {'compress_offline': True, 'debug': False,
                            'default_role': 'foo', 'webroot': '/horizon',
-                           'ubuntu_theme': True, 'secret': 'secret'})
+                           'ubuntu_theme': True, 'use_syslog': False,
+                           'secret': 'secret'})
 
     def test_HorizonContext_webroot(self):
         self.test_config.set('webroot', '/')
         self.assertEquals(horizon_contexts.HorizonContext()(),
                           {'compress_offline': True, 'debug': False,
                            'default_role': 'Member', 'webroot': '/',
-                           'ubuntu_theme': True, 'secret': 'secret'})
+                           'ubuntu_theme': True, 'use_syslog': False,
+                           'secret': 'secret'})
 
     def test_IdentityServiceContext_not_related(self):
         self.relation_ids.return_value = []
