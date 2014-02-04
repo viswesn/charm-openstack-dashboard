@@ -34,6 +34,7 @@ from horizon_utils import (
 from charmhelpers.contrib.hahelpers.apache import install_ca_cert
 from charmhelpers.contrib.hahelpers.cluster import get_hacluster_config
 from charmhelpers.payload.execd import execd_preinstall
+from base64 import b64decode
 
 hooks = Hooks()
 CONFIGS = register_configs()
@@ -95,7 +96,7 @@ def keystone_joined(rel_id=None):
 def keystone_changed():
     CONFIGS.write(LOCAL_SETTINGS)
     if relation_get('ca_cert'):
-        install_ca_cert(relation_get('ca_cert'))
+        install_ca_cert(b64decode(relation_get('ca_cert')))
 
 
 @hooks.hook('cluster-relation-departed',
