@@ -1,6 +1,7 @@
 # vim: set ts=4:et
 import horizon_contexts
 import charmhelpers.contrib.openstack.templating as templating
+import charmhelpers.contrib.openstack.context as context
 import subprocess
 import os
 from collections import OrderedDict
@@ -38,15 +39,18 @@ TEMPLATES = 'templates'
 CONFIG_FILES = OrderedDict([
     (LOCAL_SETTINGS, {
         'hook_contexts': [horizon_contexts.HorizonContext(),
-                          horizon_contexts.IdentityServiceContext()],
+                          horizon_contexts.IdentityServiceContext(),
+                          context.SyslogContext()],
         'services': ['apache2']
     }),
     (APACHE_CONF, {
-        'hook_contexts': [horizon_contexts.HorizonContext()],
+        'hook_contexts': [horizon_contexts.HorizonContext(),
+                          context.SyslogContext()],
         'services': ['apache2'],
     }),
     (APACHE_24_CONF, {
-        'hook_contexts': [horizon_contexts.HorizonContext()],
+        'hook_contexts': [horizon_contexts.HorizonContext(),
+                          context.SyslogContext()],
         'services': ['apache2'],
     }),
     (APACHE_SSL, {

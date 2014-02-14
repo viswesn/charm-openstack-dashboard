@@ -80,8 +80,7 @@ class HorizonContext(OSContextGenerator):
             'default_role': config('default-role'),
             "webroot": config('webroot'),
             "ubuntu_theme": config('ubuntu-theme') in ['yes', True],
-            "secret": config('secret') or pwgen(),
-            "use_syslog": config('use-syslog')
+            "secret": config('secret') or pwgen()
         }
         return ctxt
 

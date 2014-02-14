@@ -78,7 +78,7 @@ class TestHorizonContexts(CharmTestCase):
         self.assertEquals(horizon_contexts.HorizonContext()(),
                           {'compress_offline': True, 'debug': False,
                            'default_role': 'Member', 'webroot': '/horizon',
-                           'ubuntu_theme': True, 'use_syslog': False,
+                           'ubuntu_theme': True,
                            'secret': 'secret'})
 
     def test_HorizonContext_debug(self):
@@ -86,7 +86,7 @@ class TestHorizonContexts(CharmTestCase):
         self.assertEquals(horizon_contexts.HorizonContext()(),
                           {'compress_offline': True, 'debug': True,
                            'default_role': 'Member', 'webroot': '/horizon',
-                           'ubuntu_theme': True, 'use_syslog': False,
+                           'ubuntu_theme': True,
                            'secret': 'secret'})
 
     def test_HorizonContext_theme(self):
@@ -94,7 +94,7 @@ class TestHorizonContexts(CharmTestCase):
         self.assertEquals(horizon_contexts.HorizonContext()(),
                           {'compress_offline': True, 'debug': False,
                            'default_role': 'Member', 'webroot': '/horizon',
-                           'ubuntu_theme': False, 'use_syslog': False,
+                           'ubuntu_theme': False,
                            'secret': 'secret'})
 
     def test_HorizonContext_compression(self):
@@ -102,7 +102,7 @@ class TestHorizonContexts(CharmTestCase):
         self.assertEquals(horizon_contexts.HorizonContext()(),
                           {'compress_offline': False, 'debug': False,
                            'default_role': 'Member', 'webroot': '/horizon',
-                           'ubuntu_theme': True, 'use_syslog': False,
+                           'ubuntu_theme': True,
                            'secret': 'secret'})
 
     def test_HorizonContext_role(self):
@@ -110,7 +110,7 @@ class TestHorizonContexts(CharmTestCase):
         self.assertEquals(horizon_contexts.HorizonContext()(),
                           {'compress_offline': True, 'debug': False,
                            'default_role': 'foo', 'webroot': '/horizon',
-                           'ubuntu_theme': True, 'use_syslog': False,
+                           'ubuntu_theme': True,
                            'secret': 'secret'})
 
     def test_HorizonContext_webroot(self):
@@ -118,7 +118,7 @@ class TestHorizonContexts(CharmTestCase):
         self.assertEquals(horizon_contexts.HorizonContext()(),
                           {'compress_offline': True, 'debug': False,
                            'default_role': 'Member', 'webroot': '/',
-                           'ubuntu_theme': True, 'use_syslog': False,
+                           'ubuntu_theme': True,
                            'secret': 'secret'})
 
     def test_IdentityServiceContext_not_related(self):
