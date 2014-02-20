@@ -5,4 +5,5 @@ include:
     - fetch
     - contrib.openstack
     - contrib.hahelpers
+    - contrib.storage
     - payload.execd
