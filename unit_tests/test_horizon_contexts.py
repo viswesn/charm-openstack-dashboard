@@ -40,6 +40,7 @@ def patch_open():
 
 
 class TestHorizonContexts(CharmTestCase):
+
     def setUp(self):
         super(TestHorizonContexts, self).setUp(horizon_contexts, TO_PATCH)
         self.config.side_effect = self.test_config.get
@@ -67,7 +68,7 @@ class TestHorizonContexts(CharmTestCase):
                 call('key')
             ])
         # Security check on key permissions
-        _chmod.assert_called_with('/etc/ssl/private/dashboard.key', 0600)
+        _chmod.assert_called_with('/etc/ssl/private/dashboard.key', 0o600)
 
     def test_ApacheSSLContext_disabled(self):
         self.get_cert.return_value = (None, None)
@@ -78,42 +79,48 @@ class TestHorizonContexts(CharmTestCase):
         self.assertEquals(horizon_contexts.HorizonContext()(),
                           {'compress_offline': True, 'debug': False,
                            'default_role': 'Member', 'webroot': '/horizon',
-                           'ubuntu_theme': True, 'secret': 'secret'})
+                           'ubuntu_theme': True,
+                           'secret': 'secret'})
 
     def test_HorizonContext_debug(self):
         self.test_config.set('debug', 'yes')
         self.assertEquals(horizon_contexts.HorizonContext()(),
                           {'compress_offline': True, 'debug': True,
                            'default_role': 'Member', 'webroot': '/horizon',
-                           'ubuntu_theme': True, 'secret': 'secret'})
+                           'ubuntu_theme': True,
+                           'secret': 'secret'})
 
     def test_HorizonContext_theme(self):
         self.test_config.set('ubuntu-theme', False)
         self.assertEquals(horizon_contexts.HorizonContext()(),
                           {'compress_offline': True, 'debug': False,
                            'default_role': 'Member', 'webroot': '/horizon',
-                           'ubuntu_theme': False, 'secret': 'secret'})
+                           'ubuntu_theme': False,
+                           'secret': 'secret'})
 
     def test_HorizonContext_compression(self):
         self.test_config.set('offline-compression', 'no')
         self.assertEquals(horizon_contexts.HorizonContext()(),
                           {'compress_offline': False, 'debug': False,
                            'default_role': 'Member', 'webroot': '/horizon',
-                           'ubuntu_theme': True, 'secret': 'secret'})
+                           'ubuntu_theme': True,
+                           'secret': 'secret'})
 
     def test_HorizonContext_role(self):
         self.test_config.set('default-role', 'foo')
         self.assertEquals(horizon_contexts.HorizonContext()(),
                           {'compress_offline': True, 'debug': False,
                            'default_role': 'foo', 'webroot': '/horizon',
-                           'ubuntu_theme': True, 'secret': 'secret'})
+                           'ubuntu_theme': True,
+                           'secret': 'secret'})
 
     def test_HorizonContext_webroot(self):
         self.test_config.set('webroot', '/')
         self.assertEquals(horizon_contexts.HorizonContext()(),
                           {'compress_offline': True, 'debug': False,
                            'default_role': 'Member', 'webroot': '/',
-                           'ubuntu_theme': True, 'secret': 'secret'})
+                           'ubuntu_theme': True,
+                           'secret': 'secret'})
 
     def test_IdentityServiceContext_not_related(self):
         self.relation_ids.return_value = []

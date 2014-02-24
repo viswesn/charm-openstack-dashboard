@@ -1,6 +1,9 @@
 import os
 
 from django.utils.translation import ugettext_lazy as _
+{% if use_syslog %}
+from logging.handlers import SysLogHandler
+{% endif %}
 
 from openstack_dashboard import exceptions
 
@@ -248,6 +251,12 @@ LOGGING = {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
         },
+        {% if use_syslog %}
+        'syslog': {
+            'level': 'INFO',
+            'class': 'logging.handlers.SysLogHandler',
+        }
+        {% endif %}
     },
     'loggers': {
         # Logging from django.db.backends is VERY verbose, send to null
@@ -261,35 +270,75 @@ LOGGING = {
             'propagate': False,
         },
         'horizon': {
+            {% if use_syslog %}
+            'handlers': ['syslog'],
+            {% else %}
             'handlers': ['console'],
+            {% endif %}
             'propagate': False,
         },
         'openstack_dashboard': {
+            {% if use_syslog %}
+            'handlers': ['syslog'],
+            {% else %}
             'handlers': ['console'],
+            {% endif %}
+            'propagate': False,
+        },
+        'openstack_auth': {
+            {% if use_syslog %}
+            'handlers': ['syslog'],
+            {% else %}
+            'handlers': ['console'],
+            {% endif %}
             'propagate': False,
         },
         'novaclient': {
+            {% if use_syslog %}
+            'handlers': ['syslog'],
+            {% else %}
             'handlers': ['console'],
+            {% endif %}
             'propagate': False,
         },
         'cinderclient': {
+            {% if use_syslog %}
+            'handlers': ['syslog'],
+            {% else %}
             'handlers': ['console'],
+            {% endif %}
             'propagate': False,
         },
         'keystoneclient': {
+            {% if use_syslog %}
+            'handlers': ['syslog'],
+            {% else %}
             'handlers': ['console'],
+            {% endif %}
             'propagate': False,
         },
         'glanceclient': {
+            {% if use_syslog %}
+            'handlers': ['syslog'],
+            {% else %}
             'handlers': ['console'],
+            {% endif %}
             'propagate': False,
         },
         'heatclient': {
+            {% if use_syslog %}
+            'handlers': ['syslog'],
+            {% else %}
             'handlers': ['console'],
+            {% endif %}
             'propagate': False,
         },
         'nose.plugins.manager': {
+            {% if use_syslog %}
+            'handlers': ['syslog'],
+            {% else %}
             'handlers': ['console'],
+            {% endif %}
             'propagate': False,
         }
     }
