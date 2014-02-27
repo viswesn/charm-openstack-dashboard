@@ -1,5 +1,6 @@
 import json
 import os
+import time
 
 from base64 import b64decode
 
@@ -29,6 +30,7 @@ from charmhelpers.contrib.hahelpers.cluster import (
     determine_apache_port,
     determine_api_port,
     https,
+    is_clustered
 )
 
 from charmhelpers.contrib.hahelpers.apache import (
@@ -112,7 +114,8 @@ class OSContextGenerator(object):
 class SharedDBContext(OSContextGenerator):
     interfaces = ['shared-db']
 
-    def __init__(self, database=None, user=None, relation_prefix=None):
+    def __init__(self,
+                 database=None, user=None, relation_prefix=None, ssl_dir=None):
         '''
         Allows inspecting relation for settings prefixed with relation_prefix.
         This is useful for parsing access for multiple databases returned via
@@ -121,6 +124,7 @@ class SharedDBContext(OSContextGenerator):
         self.relation_prefix = relation_prefix
         self.database = database
         self.user = user
+        self.ssl_dir = ssl_dir
 
     def __call__(self):
         self.database = self.database or config('database')
@@ -138,17 +142,42 @@ class SharedDBContext(OSContextGenerator):
 
         for rid in relation_ids('shared-db'):
             for unit in related_units(rid):
-                passwd = relation_get(password_setting, rid=rid, unit=unit)
+                rdata = relation_get(rid=rid, unit=unit)
                 ctxt = {
-                    'database_host': relation_get('db_host', rid=rid,
-                                                  unit=unit),
+                    'database_host': rdata.get('db_host'),
                     'database': self.database,
                     'database_user': self.user,
-                    'database_password': passwd,
+                    'database_password': rdata.get(password_setting)
                 }
                 if context_complete(ctxt):
+                    db_ssl(rdata, ctxt, self.ssl_dir)
                     return ctxt
         return {}
+
+
+def db_ssl(rdata, ctxt, ssl_dir):
+    if 'ssl_ca' in rdata and ssl_dir:
+        ca_path = os.path.join(ssl_dir, 'db-client.ca')
+        with open(ca_path, 'w') as fh:
+            fh.write(b64decode(rdata['ssl_ca']))
+        ctxt['database_ssl_ca'] = ca_path
+    elif 'ssl_ca' in rdata:
+        log("Charm not setup for ssl support but ssl ca found")
+        return ctxt
+    if 'ssl_cert' in rdata:
+        cert_path = os.path.join(
+            ssl_dir, 'db-client.cert')
+        if not os.path.exists(cert_path):
+            log("Waiting 1m for ssl client cert validity")
+            time.sleep(60)
+        with open(cert_path, 'w') as fh:
+            fh.write(b64decode(rdata['ssl_cert']))
+        ctxt['database_ssl_cert'] = cert_path
+        key_path = os.path.join(ssl_dir, 'db-client.key')
+        with open(key_path, 'w') as fh:
+            fh.write(b64decode(rdata['ssl_key']))
+        ctxt['database_ssl_key'] = key_path
+    return ctxt
 
 
 class IdentityServiceContext(OSContextGenerator):
@@ -160,22 +189,19 @@ class IdentityServiceContext(OSContextGenerator):
 
         for rid in relation_ids('identity-service'):
             for unit in related_units(rid):
+                rdata = relation_get(rid=rid, unit=unit)
                 ctxt = {
-                    'service_port': relation_get('service_port', rid=rid,
-                                                 unit=unit),
-                    'service_host': relation_get('service_host', rid=rid,
-                                                 unit=unit),
-                    'auth_host': relation_get('auth_host', rid=rid, unit=unit),
-                    'auth_port': relation_get('auth_port', rid=rid, unit=unit),
-                    'admin_tenant_name': relation_get('service_tenant',
-                                                      rid=rid, unit=unit),
-                    'admin_user': relation_get('service_username', rid=rid,
-                                               unit=unit),
-                    'admin_password': relation_get('service_password', rid=rid,
-                                                   unit=unit),
-                    # XXX: Hard-coded http.
-                    'service_protocol': 'http',
-                    'auth_protocol': 'http',
+                    'service_port': rdata.get('service_port'),
+                    'service_host': rdata.get('service_host'),
+                    'auth_host': rdata.get('auth_host'),
+                    'auth_port': rdata.get('auth_port'),
+                    'admin_tenant_name': rdata.get('service_tenant'),
+                    'admin_user': rdata.get('service_username'),
+                    'admin_password': rdata.get('service_password'),
+                    'service_protocol':
+                    rdata.get('service_protocol') or 'http',
+                    'auth_protocol':
+                    rdata.get('auth_protocol') or 'http',
                 }
                 if context_complete(ctxt):
                     return ctxt
@@ -184,6 +210,9 @@ class IdentityServiceContext(OSContextGenerator):
 
 class AMQPContext(OSContextGenerator):
     interfaces = ['amqp']
+
+    def __init__(self, ssl_dir=None):
+        self.ssl_dir = ssl_dir
 
     def __call__(self):
         log('Generating template context for amqp')
@@ -195,7 +224,6 @@ class AMQPContext(OSContextGenerator):
             log('Could not generate shared_db context. '
                 'Missing required charm config options: %s.' % e)
             raise OSContextError
-
         ctxt = {}
         for rid in relation_ids('amqp'):
             for unit in related_units(rid):
@@ -212,7 +240,24 @@ class AMQPContext(OSContextGenerator):
                                                       unit=unit),
                     'rabbitmq_virtual_host': vhost,
                 })
+                ssl_port = relation_get('ssl_port', rid=rid, unit=unit)
+                if ssl_port:
+                    ctxt['rabbit_ssl_port'] = ssl_port
+                ssl_ca = relation_get('ssl_ca', rid=rid, unit=unit)
+                if ssl_ca:
+                    ctxt['rabbit_ssl_ca'] = ssl_ca
+
                 if context_complete(ctxt):
+                    if 'rabbit_ssl_ca' in ctxt:
+                        if not self.ssl_dir:
+                            log(("Charm not setup for ssl support "
+                                 "but ssl ca found"))
+                            break
+                        ca_path = os.path.join(
+                            self.ssl_dir, 'rabbit-client-ca.pem')
+                        with open(ca_path, 'w') as fh:
+                            fh.write(b64decode(ctxt['rabbit_ssl_ca']))
+                            ctxt['rabbit_ssl_ca'] = ca_path
                     # Sufficient information found = break out!
                     break
             # Used for active/active rabbitmq >= grizzly
@@ -240,10 +285,13 @@ class CephContext(OSContextGenerator):
         '''This generates context for /etc/ceph/ceph.conf templates'''
         if not relation_ids('ceph'):
             return {}
+
         log('Generating template context for ceph')
+
         mon_hosts = []
         auth = None
         key = None
+        use_syslog = str(config('use-syslog')).lower()
         for rid in relation_ids('ceph'):
             for unit in related_units(rid):
                 mon_hosts.append(relation_get('private-address', rid=rid,
@@ -255,6 +303,7 @@ class CephContext(OSContextGenerator):
             'mon_hosts': ' '.join(mon_hosts),
             'auth': auth,
             'key': key,
+            'use_syslog': use_syslog
         }
 
         if not os.path.isdir('/etc/ceph'):
@@ -391,7 +440,7 @@ class ApacheSSLContext(OSContextGenerator):
         return ctxt
 
 
-class NeutronContext(object):
+class NeutronContext(OSContextGenerator):
     interfaces = []
 
     @property
@@ -452,6 +501,22 @@ class NeutronContext(object):
 
         return nvp_ctxt
 
+    def neutron_ctxt(self):
+        if https():
+            proto = 'https'
+        else:
+            proto = 'http'
+        if is_clustered():
+            host = config('vip')
+        else:
+            host = unit_get('private-address')
+        url = '%s://%s:%s' % (proto, host, '9292')
+        ctxt = {
+            'network_manager': self.network_manager,
+            'neutron_url': url,
+        }
+        return ctxt
+
     def __call__(self):
         self._ensure_packages()
 
@@ -461,7 +526,7 @@ class NeutronContext(object):
         if not self.plugin:
             return {}
 
-        ctxt = {'network_manager': self.network_manager}
+        ctxt = self.neutron_ctxt()
 
         if self.plugin == 'ovs':
             ctxt.update(self.ovs_ctxt())

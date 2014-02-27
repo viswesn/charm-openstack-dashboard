@@ -150,7 +150,19 @@ class TestHorizonContexts(CharmTestCase):
         self.test_relation.set({'service_host': 'foo', 'service_port': 5000})
         self.context_complete.return_value = True
         self.assertEquals(horizon_contexts.IdentityServiceContext()(),
-                          {'service_host': 'foo', 'service_port': 5000})
+                          {'service_host': 'foo', 'service_port': 5000,
+                           'service_protocol': 'http'})
+
+    def test_IdentityServiceContext_data(self):
+        self.relation_ids.return_value = ['foo']
+        self.related_units.return_value = ['bar', 'baz']
+        self.relation_get.side_effect = self.test_relation.get
+        self.test_relation.set({'service_host': 'foo', 'service_port': 5000,
+                                'service_protocol': 'https'})
+        self.context_complete.return_value = True
+        self.assertEquals(horizon_contexts.IdentityServiceContext()(),
+                          {'service_host': 'foo', 'service_port': 5000,
+                           'service_protocol': 'https'})
 
     def test_HorizonHAProxyContext_no_cluster(self):
         self.relation_ids.return_value = []
