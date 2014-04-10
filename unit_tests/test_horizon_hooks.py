@@ -173,12 +173,12 @@ class TestHorizonHooks(CharmTestCase):
     @patch('sys.argv')
     @patch.object(hooks, 'install')
     def test_main_hook_exists(self, _install, _argv):
-        _argv = ['hooks/install']
+        _argv = ['hooks/install']  # NOQA
         hooks.main()
         _install.assert_called()
 
     @patch('sys.argv')
     def test_main_hook_missing(self, _argv):
-        _argv = ['hooks/start']
+        _argv = ['hooks/start']  # NOQA
         hooks.main()
         self.log.assert_called()
