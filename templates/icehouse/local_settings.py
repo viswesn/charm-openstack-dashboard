@@ -147,16 +147,19 @@ OPENSTACK_KEYSTONE_BACKEND = {
 }
 
 OPENSTACK_HYPERVISOR_FEATURES = {
-    'can_set_mount_point': True,
+    'can_set_mount_point': False,
+    'can_set_password': False,
 }
 
 # The OPENSTACK_NEUTRON_NETWORK settings can be used to enable optional
 # services provided by neutron. Options currenly available are load
 # balancer service, security groups, quotas.
 OPENSTACK_NEUTRON_NETWORK = {
-    'enable_lb': False,
+    'enable_lb': True,
     'enable_quotas': True,
     'enable_security_group': True,
+    'enable_firewall': True,
+    'enable_vpn': True,
     # The profile_support option is used to detect if an external router can be
     # configured via the dashboard. When using specific plugins the
     # profile_support can be turned on if needed.
@@ -180,6 +183,17 @@ OPENSTACK_IMAGE_BACKEND = {
         ('vhd', _('VHD')),
         ('vmdk', _('VMDK'))
     ]
+}
+
+# The IMAGE_CUSTOM_PROPERTY_TITLES settings is used to customize the titles for
+# image custom property attributes that appear on image detail pages.
+IMAGE_CUSTOM_PROPERTY_TITLES = {
+    "architecture": _("Architecture"),
+    "kernel_id": _("Kernel ID"),
+    "ramdisk_id": _("Ramdisk ID"),
+    "image_state": _("Euca2ools state"),
+    "project_id": _("Project ID"),
+    "image_type": _("Image Type")
 }
 
 # OPENSTACK_ENDPOINT_TYPE specifies the endpoint type to use for the endpoints
@@ -447,6 +461,17 @@ SECURITY_GROUP_RULES = {
         'from_port': '3389',
         'to_port': '3389',
     },
+}
+
+FLAVOR_EXTRA_KEYS = {
+    'flavor_keys': [
+        ('quota:read_bytes_sec', _('Quota: Read bytes')),
+        ('quota:write_bytes_sec', _('Quota: Write bytes')),
+        ('quota:cpu_quota', _('Quota: CPU')),
+        ('quota:cpu_period', _('Quota: CPU period')),
+        ('quota:inbound_average', _('Quota: Inbound average')),
+        ('quota:outbound_average', _('Quota: Outbound average')),
+    ]
 }
 
 {% if ubuntu_theme %}

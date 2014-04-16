@@ -13,7 +13,7 @@ TO_PATCH = [
     'config',
     'get_os_codename_install_source',
     'apt_update',
-    'apt_install',
+    'apt_upgrade',
     'configure_installation_source',
     'log',
 ]
@@ -57,8 +57,8 @@ class TestHorizonUtils(CharmTestCase):
             '--option', 'Dpkg::Options::=--force-confnew',
             '--option', 'Dpkg::Options::=--force-confdef',
         ]
-        self.apt_install.assert_called_with(packages=horizon_utils.PACKAGES,
-                                            options=dpkg_opts, fatal=True)
+        self.apt_upgrade.assert_called_with(options=dpkg_opts,
+                                            dist=True, fatal=True)
         self.configure_installation_source.assert_called_with(
             'cloud:precise-havana'
         )
