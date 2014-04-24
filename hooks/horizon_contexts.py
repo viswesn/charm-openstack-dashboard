@@ -66,6 +66,9 @@ class IdentityServiceContext(OSContextGenerator):
                 ctxt['service_port'] = relation_get('service_port',
                                                     rid=r_id,
                                                     unit=unit)
+                ctxt['service_protocol'] = relation_get('service_protocol',
+                                                        rid=r_id,
+                                                        unit=unit) or 'http'
                 if context_complete(ctxt):
                     return ctxt
         return {}
