@@ -120,3 +120,12 @@ class ApacheSSLContext(OSContextGenerator):
                 'ssl_configured': False,
             }
         return ctxt
+
+class RouterSettingContext(OSContextGenerator):
+    def __call__(self):
+        ''' Enable/Disable Router Tab on horizon '''
+        ctxt = {
+            'disable_router': False if config('profile-support').lower() == "cisco" else True
+        }
+        return ctxt
+
