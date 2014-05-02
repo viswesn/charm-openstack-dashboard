@@ -11,3 +11,7 @@ test:
 
 sync:
 	@charm-helper-sync -c charm-helpers-sync.yaml
+
+publish:
+	bzr push lp:charms/openstack-dashboard
+	bzr push lp:charms/trusty/openstack-dashboard
