@@ -106,19 +106,19 @@ def register_configs():
             if os.path.isfile(conf):
                 log('Removing old config %s' % (conf))
                 os.remove(conf)
+        configs.register(APACHE_24_DEFAULT,
+                         CONFIG_FILES[APACHE_24_DEFAULT]['hook_contexts'])
         configs.register(APACHE_24_CONF,
                          CONFIG_FILES[APACHE_24_CONF]['hook_contexts'])
         configs.register(APACHE_24_SSL,
                          CONFIG_FILES[APACHE_24_SSL]['hook_contexts'])
-        configs.register(APACHE_24_DEFAULT,
-                         CONFIG_FILES[APACHE_24_DEFAULT]['hook_contexts'])
     else:
+        configs.register(APACHE_DEFAULT,
+                         CONFIG_FILES[APACHE_DEFAULT]['hook_contexts'])
         configs.register(APACHE_CONF,
                          CONFIG_FILES[APACHE_CONF]['hook_contexts'])
         configs.register(APACHE_SSL,
                          CONFIG_FILES[APACHE_SSL]['hook_contexts'])
-        configs.register(APACHE_DEFAULT,
-                         CONFIG_FILES[APACHE_DEFAULT]['hook_contexts'])
 
     return configs
 

@@ -75,9 +75,9 @@ class TestHorizonUtils(CharmTestCase):
         confs = [horizon_utils.LOCAL_SETTINGS,
                  horizon_utils.HAPROXY_CONF,
                  horizon_utils.PORTS_CONF,
+                 horizon_utils.APACHE_DEFAULT,
                  horizon_utils.APACHE_CONF,
-                 horizon_utils.APACHE_SSL,
-                 horizon_utils.APACHE_DEFAULT]
+                 horizon_utils.APACHE_SSL]
         calls = []
         for conf in confs:
             calls.append(call(conf, horizon_utils.CONFIG_FILES[conf]['hook_contexts']))
@@ -95,9 +95,9 @@ class TestHorizonUtils(CharmTestCase):
         confs = [horizon_utils.LOCAL_SETTINGS,
                  horizon_utils.HAPROXY_CONF,
                  horizon_utils.PORTS_CONF,
+                 horizon_utils.APACHE_24_DEFAULT,
                  horizon_utils.APACHE_24_CONF,
-                 horizon_utils.APACHE_24_SSL,
-                 horizon_utils.APACHE_24_DEFAULT]
+                 horizon_utils.APACHE_24_SSL]
         calls = []
         for conf in confs:
             calls.append(call(conf, horizon_utils.CONFIG_FILES[conf]['hook_contexts']))
@@ -118,9 +118,9 @@ class TestHorizonUtils(CharmTestCase):
         confs = [horizon_utils.LOCAL_SETTINGS,
                  horizon_utils.HAPROXY_CONF,
                  horizon_utils.PORTS_CONF,
+                 horizon_utils.APACHE_DEFAULT,
                  horizon_utils.APACHE_CONF,
-                 horizon_utils.APACHE_SSL,
-                 horizon_utils.APACHE_DEFAULT]
+                 horizon_utils.APACHE_SSL]
         calls = []
         for conf in confs:
             calls.append(call(conf, horizon_utils.CONFIG_FILES[conf]['hook_contexts']))
