@@ -15,6 +15,9 @@ from charmhelpers.core.hookenv import (
     config,
     log
 )
+from charmhelpers.core.host import (
+    cmp_pkgrevno
+)
 from charmhelpers.fetch import (
     apt_upgrade,
     apt_update
@@ -26,13 +29,16 @@ PACKAGES = [
     "nodejs", "node-less", "openstack-dashboard-ubuntu-theme"
 ]
 
+APACHE_CONF_DIR = "/etc/apache2"
 LOCAL_SETTINGS = "/etc/openstack-dashboard/local_settings.py"
 HAPROXY_CONF = "/etc/haproxy/haproxy.cfg"
-APACHE_CONF = "/etc/apache2/conf.d/openstack-dashboard.conf"
-APACHE_24_CONF = "/etc/apache2/conf-available/openstack-dashboard.conf"
-PORTS_CONF = "/etc/apache2/ports.conf"
-APACHE_SSL = "/etc/apache2/sites-available/default-ssl"
-APACHE_DEFAULT = "/etc/apache2/sites-available/default"
+APACHE_CONF = "%s/conf.d/openstack-dashboard.conf" % (APACHE_CONF_DIR)
+APACHE_24_CONF = "%s/conf-available/openstack-dashboard.conf" % (APACHE_CONF_DIR)
+PORTS_CONF = "%s/ports.conf" % (APACHE_CONF_DIR)
+APACHE_24_SSL = "%s/sites-available/000-default.conf" % (APACHE_CONF_DIR)
+APACHE_24_DEFAULT = "%s/sites-available/default-ssl.conf" % (APACHE_CONF_DIR)
+APACHE_SSL = "%s/sites-available/default-ssl" % (APACHE_CONF_DIR)
+APACHE_DEFAULT = "%s/sites-available/default" % (APACHE_CONF_DIR)
 
 TEMPLATES = 'templates'
 
@@ -58,7 +64,16 @@ CONFIG_FILES = OrderedDict([
                           horizon_contexts.ApacheContext()],
         'services': ['apache2'],
     }),
+    (APACHE_24_SSL, {
+        'hook_contexts': [horizon_contexts.ApacheSSLContext(),
+                          horizon_contexts.ApacheContext()],
+        'services': ['apache2'],
+    }),
     (APACHE_DEFAULT, {
+        'hook_contexts': [horizon_contexts.ApacheContext()],
+        'services': ['apache2'],
+    }),
+    (APACHE_24_DEFAULT, {
         'hook_contexts': [horizon_contexts.ApacheContext()],
         'services': ['apache2'],
     }),
@@ -72,7 +87,6 @@ CONFIG_FILES = OrderedDict([
     }),
 ])
 
-
 def register_configs():
     ''' Register config files with their respective contexts. '''
     release = get_os_codename_package('openstack-dashboard', fatal=False) or \
@@ -82,19 +96,29 @@ def register_configs():
 
     confs = [LOCAL_SETTINGS,
              HAPROXY_CONF,
-             APACHE_SSL,
-             APACHE_DEFAULT,
              PORTS_CONF]
 
     for conf in confs:
         configs.register(conf, CONFIG_FILES[conf]['hook_contexts'])
 
-    if os.path.exists(os.path.dirname(APACHE_24_CONF)):
+    if os.path.isdir(APACHE_CONF_DIR) and cmp_pkgrevno('apache2', '2.4') >= 0:
+        for conf in [APACHE_CONF, APACHE_SSL, APACHE_DEFAULT]:
+            if os.path.isfile(conf):
+                log('Removing old config %s' % (conf))
+                os.remove(conf)
         configs.register(APACHE_24_CONF,
                          CONFIG_FILES[APACHE_24_CONF]['hook_contexts'])
+        configs.register(APACHE_24_SSL,
+                         CONFIG_FILES[APACHE_24_SSL]['hook_contexts'])
+        configs.register(APACHE_24_DEFAULT,
+                         CONFIG_FILES[APACHE_24_DEFAULT]['hook_contexts'])
     else:
         configs.register(APACHE_CONF,
                          CONFIG_FILES[APACHE_CONF]['hook_contexts'])
+        configs.register(APACHE_SSL,
+                         CONFIG_FILES[APACHE_SSL]['hook_contexts'])
+        configs.register(APACHE_DEFAULT,
+                         CONFIG_FILES[APACHE_DEFAULT]['hook_contexts'])
 
     return configs
 
