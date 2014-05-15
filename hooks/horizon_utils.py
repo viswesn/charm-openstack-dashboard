@@ -35,8 +35,8 @@ HAPROXY_CONF = "/etc/haproxy/haproxy.cfg"
 APACHE_CONF = "%s/conf.d/openstack-dashboard.conf" % (APACHE_CONF_DIR)
 APACHE_24_CONF = "%s/conf-available/openstack-dashboard.conf" % (APACHE_CONF_DIR)
 PORTS_CONF = "%s/ports.conf" % (APACHE_CONF_DIR)
-APACHE_24_SSL = "%s/sites-available/000-default.conf" % (APACHE_CONF_DIR)
-APACHE_24_DEFAULT = "%s/sites-available/default-ssl.conf" % (APACHE_CONF_DIR)
+APACHE_24_SSL = "%s/sites-available/default-ssl.conf" % (APACHE_CONF_DIR)
+APACHE_24_DEFAULT = "%s/sites-available/000-default.conf" % (APACHE_CONF_DIR)
 APACHE_SSL = "%s/sites-available/default-ssl" % (APACHE_CONF_DIR)
 APACHE_DEFAULT = "%s/sites-available/default" % (APACHE_CONF_DIR)
 
