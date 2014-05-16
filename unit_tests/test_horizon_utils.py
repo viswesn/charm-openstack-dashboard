@@ -40,9 +40,9 @@ class TestHorizonUtils(CharmTestCase):
             ('/etc/apache2/conf-available/openstack-dashboard.conf',
              ['apache2']),
             ('/etc/apache2/sites-available/default-ssl', ['apache2']),
-            ('/etc/apache2/sites-available/000-default.conf', ['apache2']),
-            ('/etc/apache2/sites-available/default', ['apache2']),
             ('/etc/apache2/sites-available/default-ssl.conf', ['apache2']),
+            ('/etc/apache2/sites-available/default', ['apache2']),
+            ('/etc/apache2/sites-available/000-default.conf', ['apache2']),
             ('/etc/apache2/ports.conf', ['apache2']),
             ('/etc/haproxy/haproxy.cfg', ['haproxy']),
         ])
