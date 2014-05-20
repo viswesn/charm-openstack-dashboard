@@ -16,6 +16,7 @@ TO_PATCH = [
     'apt_upgrade',
     'configure_installation_source',
     'log',
+    'cmp_pkgrevno',
 ]
 
 
@@ -39,7 +40,9 @@ class TestHorizonUtils(CharmTestCase):
             ('/etc/apache2/conf-available/openstack-dashboard.conf',
              ['apache2']),
             ('/etc/apache2/sites-available/default-ssl', ['apache2']),
+            ('/etc/apache2/sites-available/default-ssl.conf', ['apache2']),
             ('/etc/apache2/sites-available/default', ['apache2']),
+            ('/etc/apache2/sites-available/000-default.conf', ['apache2']),
             ('/etc/apache2/ports.conf', ['apache2']),
             ('/etc/haproxy/haproxy.cfg', ['haproxy']),
         ])
@@ -63,53 +66,62 @@ class TestHorizonUtils(CharmTestCase):
             'cloud:precise-havana'
         )
 
-    @patch('os.path.exists')
-    def test_register_configs(self, _exists):
-        _exists.return_value = False
+    @patch('os.path.isdir')
+    def test_register_configs(self, _isdir):
+        _isdir.return_value = True
         self.get_os_codename_package.return_value = 'havana'
+        self.cmp_pkgrevno.return_value = -1
         configs = horizon_utils.register_configs()
         confs = [horizon_utils.LOCAL_SETTINGS,
                  horizon_utils.HAPROXY_CONF,
+                 horizon_utils.PORTS_CONF,
+                 horizon_utils.APACHE_DEFAULT,
                  horizon_utils.APACHE_CONF,
-                 horizon_utils.APACHE_SSL,
-                 horizon_utils.APACHE_DEFAULT,
-                 horizon_utils.PORTS_CONF]
+                 horizon_utils.APACHE_SSL]
+        calls = []
         for conf in confs:
-            configs.register.assert_any_call(
-                conf,
-                horizon_utils.CONFIG_FILES[conf]['hook_contexts']
-            )
+            calls.append(call(conf, horizon_utils.CONFIG_FILES[conf]['hook_contexts']))
+        configs.register.assert_has_calls(calls)
 
-    @patch('os.path.exists')
-    def test_register_configs_apache24(self, _exists):
-        _exists.return_value = True
+    @patch('os.remove')
+    @patch('os.path.isfile')
+    @patch('os.path.isdir')
+    def test_register_configs_apache24(self, _isdir, _isfile, _remove):
+        _isdir.return_value = True
+        _isfile.return_value = True
         self.get_os_codename_package.return_value = 'havana'
+        self.cmp_pkgrevno.return_value = 1
         configs = horizon_utils.register_configs()
         confs = [horizon_utils.LOCAL_SETTINGS,
                  horizon_utils.HAPROXY_CONF,
+                 horizon_utils.PORTS_CONF,
+                 horizon_utils.APACHE_24_DEFAULT,
                  horizon_utils.APACHE_24_CONF,
-                 horizon_utils.APACHE_SSL,
-                 horizon_utils.APACHE_DEFAULT,
-                 horizon_utils.PORTS_CONF]
+                 horizon_utils.APACHE_24_SSL]
+        calls = []
         for conf in confs:
-            configs.register.assert_any_call(
-                conf,
-                horizon_utils.CONFIG_FILES[conf]['hook_contexts']
-            )
+            calls.append(call(conf, horizon_utils.CONFIG_FILES[conf]['hook_contexts']))
+        configs.register.assert_has_calls(calls)
+        oldconfs = [horizon_utils.APACHE_CONF,
+                    horizon_utils.APACHE_SSL,
+                    horizon_utils.APACHE_DEFAULT]
+        rmcalls = []
+        for conf in oldconfs:
+            rmcalls.append(call(conf))
+        _remove.assert_has_calls(rmcalls)
 
-    @patch('os.path.exists')
-    def test_register_configs_pre_install(self, _exists):
-        _exists.return_value = False
+    @patch('os.path.isdir')
+    def test_register_configs_pre_install(self, _isdir):
+        _isdir.return_value = False
         self.get_os_codename_package.return_value = None
         configs = horizon_utils.register_configs()
         confs = [horizon_utils.LOCAL_SETTINGS,
                  horizon_utils.HAPROXY_CONF,
-                 horizon_utils.APACHE_CONF,
-                 horizon_utils.APACHE_SSL,
+                 horizon_utils.PORTS_CONF,
                  horizon_utils.APACHE_DEFAULT,
-                 horizon_utils.PORTS_CONF]
+                 horizon_utils.APACHE_CONF,
+                 horizon_utils.APACHE_SSL]
+        calls = []
         for conf in confs:
-            configs.register.assert_any_call(
-                conf,
-                horizon_utils.CONFIG_FILES[conf]['hook_contexts']
-            )
+            calls.append(call(conf, horizon_utils.CONFIG_FILES[conf]['hook_contexts']))
+        configs.register.assert_has_calls(calls)
