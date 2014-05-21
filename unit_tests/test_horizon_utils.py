@@ -80,7 +80,9 @@ class TestHorizonUtils(CharmTestCase):
                  horizon_utils.APACHE_SSL]
         calls = []
         for conf in confs:
-            calls.append(call(conf, horizon_utils.CONFIG_FILES[conf]['hook_contexts']))
+            calls.append(
+                call(conf,
+                     horizon_utils.CONFIG_FILES[conf]['hook_contexts']))
         configs.register.assert_has_calls(calls)
 
     @patch('os.remove')
@@ -100,7 +102,8 @@ class TestHorizonUtils(CharmTestCase):
                  horizon_utils.APACHE_24_SSL]
         calls = []
         for conf in confs:
-            calls.append(call(conf, horizon_utils.CONFIG_FILES[conf]['hook_contexts']))
+            calls.append(
+                call(conf, horizon_utils.CONFIG_FILES[conf]['hook_contexts']))
         configs.register.assert_has_calls(calls)
         oldconfs = [horizon_utils.APACHE_CONF,
                     horizon_utils.APACHE_SSL,
@@ -123,5 +126,6 @@ class TestHorizonUtils(CharmTestCase):
                  horizon_utils.APACHE_SSL]
         calls = []
         for conf in confs:
-            calls.append(call(conf, horizon_utils.CONFIG_FILES[conf]['hook_contexts']))
+            calls.append(
+                call(conf, horizon_utils.CONFIG_FILES[conf]['hook_contexts']))
         configs.register.assert_has_calls(calls)

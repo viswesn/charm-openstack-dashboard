@@ -33,7 +33,8 @@ APACHE_CONF_DIR = "/etc/apache2"
 LOCAL_SETTINGS = "/etc/openstack-dashboard/local_settings.py"
 HAPROXY_CONF = "/etc/haproxy/haproxy.cfg"
 APACHE_CONF = "%s/conf.d/openstack-dashboard.conf" % (APACHE_CONF_DIR)
-APACHE_24_CONF = "%s/conf-available/openstack-dashboard.conf" % (APACHE_CONF_DIR)
+APACHE_24_CONF = "%s/conf-available/openstack-dashboard.conf" \
+    % (APACHE_CONF_DIR)
 PORTS_CONF = "%s/ports.conf" % (APACHE_CONF_DIR)
 APACHE_24_SSL = "%s/sites-available/default-ssl.conf" % (APACHE_CONF_DIR)
 APACHE_24_DEFAULT = "%s/sites-available/000-default.conf" % (APACHE_CONF_DIR)
@@ -86,6 +87,7 @@ CONFIG_FILES = OrderedDict([
         'services': ['haproxy'],
     }),
 ])
+
 
 def register_configs():
     ''' Register config files with their respective contexts. '''
