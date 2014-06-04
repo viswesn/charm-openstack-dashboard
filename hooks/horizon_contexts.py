@@ -83,8 +83,12 @@ class HorizonContext(OSContextGenerator):
             'default_role': config('default-role'),
             "webroot": config('webroot'),
             "ubuntu_theme": config('ubuntu-theme') in ['yes', True],
-            "secret": config('secret') or pwgen()
+            "secret": config('secret') or pwgen(),
+            "neutron_network_lb": config("neutron_network_lb"),
+            "neutron_network_firewall": config("neutron_network_firewall"),
+            "neutron_network_vpn": config("neutron_network_vpn"),
         }
+
         return ctxt
 
 
