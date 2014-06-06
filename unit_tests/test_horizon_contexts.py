@@ -81,9 +81,9 @@ class TestHorizonContexts(CharmTestCase):
                            'default_role': 'Member', 'webroot': '/horizon',
                            'ubuntu_theme': True,
                            'secret': 'secret',
-                           "neutron-network-lb": True,
-                           "neutron-network-firewall": True,
-                           "neutron-network-vpn": True})
+                           "neutron_network_lb": True,
+                           "neutron_network_firewall": True,
+                           "neutron_network_vpn": True})
 
     def test_HorizonContext_debug(self):
         self.test_config.set('debug', 'yes')
@@ -92,9 +92,9 @@ class TestHorizonContexts(CharmTestCase):
                            'default_role': 'Member', 'webroot': '/horizon',
                            'ubuntu_theme': True,
                            'secret': 'secret',
-                           "neutron-network-lb": True,
-                           "neutron-network-firewall": True,
-                           "neutron-network-vpn": True})
+                           "neutron_network_lb": True,
+                           "neutron_network_firewall": True,
+                           "neutron_network_vpn": True})
 
     def test_HorizonContext_theme(self):
         self.test_config.set('ubuntu-theme', False)
@@ -103,9 +103,9 @@ class TestHorizonContexts(CharmTestCase):
                            'default_role': 'Member', 'webroot': '/horizon',
                            'ubuntu_theme': False,
                            'secret': 'secret',
-                           "neutron-network-lb": True,
-                           "neutron-network-firewall": True,
-                           "neutron-network-vpn": True})
+                           "neutron_network_lb": True,
+                           "neutron_network_firewall": True,
+                           "neutron_network_vpn": True})
 
     def test_HorizonContext_compression(self):
         self.test_config.set('offline-compression', 'no')
@@ -114,9 +114,9 @@ class TestHorizonContexts(CharmTestCase):
                            'default_role': 'Member', 'webroot': '/horizon',
                            'ubuntu_theme': True,
                            'secret': 'secret',
-                           "neutron-network-lb": True,
-                           "neutron-network-firewall": True,
-                           "neutron-network-vpn": True})
+                           "neutron_network_lb": True,
+                           "neutron_network_firewall": True,
+                           "neutron_network_vpn": True})
 
     def test_HorizonContext_role(self):
         self.test_config.set('default-role', 'foo')
@@ -125,9 +125,9 @@ class TestHorizonContexts(CharmTestCase):
                            'default_role': 'foo', 'webroot': '/horizon',
                            'ubuntu_theme': True,
                            'secret': 'secret',
-                           "neutron-network-lb": True,
-                           "neutron-network-firewall": True,
-                           "neutron-network-vpn": True})
+                           "neutron_network_lb": True,
+                           "neutron_network_firewall": True,
+                           "neutron_network_vpn": True})
 
     def test_HorizonContext_webroot(self):
         self.test_config.set('webroot', '/')
@@ -136,9 +136,9 @@ class TestHorizonContexts(CharmTestCase):
                            'default_role': 'Member', 'webroot': '/',
                            'ubuntu_theme': True,
                            'secret': 'secret',
-                           "neutron-network-lb": True,
-                           "neutron-network-firewall": True,
-                           "neutron-network-vpn": True})
+                           "neutron_network_lb": True,
+                           "neutron_network_firewall": True,
+                           "neutron_network_vpn": True})
 
     def test_IdentityServiceContext_not_related(self):
         self.relation_ids.return_value = []
