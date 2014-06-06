@@ -155,11 +155,11 @@ OPENSTACK_HYPERVISOR_FEATURES = {
 # services provided by neutron. Options currenly available are load
 # balancer service, security groups, quotas.
 OPENSTACK_NEUTRON_NETWORK = {
-    'enable_lb': {{ neutron-network-lb }},
+    'enable_lb': {{ neutron_network_lb }},
     'enable_quotas': True,
     'enable_security_group': True,
-    'enable_firewall': {{ neutron-network-firewall }},
-    'enable_vpn': {{ neutron-network-vpn }},
+    'enable_firewall': {{ neutron_network_firewall }},
+    'enable_vpn': {{ neutron_network_vpn }},
     # The profile_support option is used to detect if an external router can be
     # configured via the dashboard. When using specific plugins the
     # profile_support can be turned on if needed.
