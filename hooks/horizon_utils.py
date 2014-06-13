@@ -73,7 +73,7 @@ CONFIG_FILES = OrderedDict([
     }),
     (ROUTER_SETTING, {
         'hook_contexts': [horizon_contexts.RouterSettingContext()],
-        'services': ['haproxy'],
+        'services': ['apache2'],
     }),
 ])
 
@@ -89,8 +89,7 @@ def register_configs():
              HAPROXY_CONF,
              APACHE_SSL,
              APACHE_DEFAULT,
-             PORTS_CONF,
-             ROUTER_SETTING]
+             PORTS_CONF]
 
     for conf in confs:
         configs.register(conf, CONFIG_FILES[conf]['hook_contexts'])
@@ -102,6 +101,10 @@ def register_configs():
         configs.register(APACHE_CONF,
                          CONFIG_FILES[APACHE_CONF]['hook_contexts'])
 
+    if os.path.exists(os.path.dirname(ROUTER_SETTING)):
+        configs.register(ROUTER_SETTING,
+                         CONFIG_FILES[ROUTER_SETTING]['hook_contexts'])
+    
     return configs
 
 
