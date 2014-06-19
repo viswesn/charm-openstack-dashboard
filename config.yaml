@@ -87,3 +87,15 @@ options:
     secret:
         type: string
         description: Secret for Horizon to use when securing internal data; set this when using multiple dashboard units.
+    neutron-network-lb:
+        type: boolean
+        default: False
+        description: Enable neutron load balancer service panel
+    neutron-network-firewall:
+        type: boolean
+        default: False
+        description: Enable neutron firewall service panel
+    neutron-network-vpn:
+        type: boolean
+        default: False
+        description: Enable neutron vpn service panel
