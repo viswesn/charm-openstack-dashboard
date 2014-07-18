@@ -26,7 +26,7 @@ from charmhelpers.fetch import (
 PACKAGES = [
     "openstack-dashboard", "python-keystoneclient", "python-memcache",
     "memcached", "haproxy", "python-novaclient",
-    "nodejs", "node-less", "openstack-dashboard-ubuntu-theme"
+    "openstack-dashboard-ubuntu-theme"
 ]
 
 APACHE_CONF_DIR = "/etc/apache2"
