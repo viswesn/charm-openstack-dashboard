@@ -156,7 +156,11 @@ except ImportError:
 
 # Default Ubuntu apache configuration uses /horizon as the application root.
 # Configure auth redirects here accordingly.
+{% if webroot == "/" %}
+LOGIN_URL='/auth/login/'
+{% else %}
 LOGIN_URL='{{ webroot }}/auth/login/'
+{% endif %}
 LOGIN_REDIRECT_URL='{{ webroot }}'
 
 # The Ubuntu package includes pre-compressed JS and compiled CSS to allow
