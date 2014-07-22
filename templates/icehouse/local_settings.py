@@ -165,7 +165,11 @@ OPENSTACK_NEUTRON_NETWORK = {
     # profile_support can be turned on if needed.
     #'profile_support': None,
     #'profile_support': 'cisco', # Example of value set to support Cisco
+    {% if support_profile -%}
     'profile_support': '{{ support_profile }}',
+    {% else -%}
+    'profile_support': None,
+    {% endif -%}
 }
 
 # The OPENSTACK_IMAGE_BACKEND settings can be used to customize features
