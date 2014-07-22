@@ -84,7 +84,7 @@ class HorizonContext(OSContextGenerator):
             "webroot": config('webroot'),
             "ubuntu_theme": config('ubuntu-theme') in ['yes', True],
             "secret": config('secret') or pwgen(),
-            'support_profile': config('profile-support')
+            'support_profile': config('profile') if config('profile') in ['cisco'] else None,
         }
         return ctxt
 
@@ -125,7 +125,7 @@ class RouterSettingContext(OSContextGenerator):
     def __call__(self):
         ''' Enable/Disable Router Tab on horizon '''
         ctxt = {
-            'disable_router': False if config('profile-support').lower() == "cisco" else True
+            'disable_router': False if config('profile') in  ['cisco'] else True
         }
         return ctxt
 

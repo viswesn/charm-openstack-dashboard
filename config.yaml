@@ -87,7 +87,6 @@ options:
     secret:
         type: string
         description: Secret for Horizon to use when securing internal data; set this when using multiple dashboard units.
-    profile-support:
+    profile:
         type: string
-        default: "None"
-        description: Default profile for the dashboard.
+        description: Default profile for the dashboard. Eg. cisco
