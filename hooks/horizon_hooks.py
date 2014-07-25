@@ -46,7 +46,7 @@ def install():
     configure_installation_source(config('openstack-origin'))
     apt_update(fatal=True)
     packages = PACKAGES[:]
-    if os_release() < 'icehouse':
+    if os_release('openstack-dashboard') < 'icehouse':
         packages += ['nodejs', 'node-less']
     apt_install(filter_installed_packages(packages), fatal=True)
 
