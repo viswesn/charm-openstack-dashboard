@@ -228,8 +228,8 @@ def configure_installation_source(rel):
         with open('/etc/apt/sources.list.d/juju_deb.list', 'w') as f:
             f.write(DISTRO_PROPOSED % ubuntu_rel)
     elif rel[:4] == "ppa:":
-        src = rel
-        subprocess.check_call(["add-apt-repository", "-y", src])
+        src = rel.split(' ')
+        subprocess.check_call(["add-apt-repository", "-y" ] + src)
     elif rel[:3] == "deb":
         l = len(rel.split('|'))
         if l == 2:
