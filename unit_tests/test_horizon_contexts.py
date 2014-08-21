@@ -206,3 +206,11 @@ class TestHorizonContexts(CharmTestCase):
                                                  'dash_secure': [443, 433]}})
             _open.assert_called_with('/etc/default/haproxy', 'w')
             _file.write.assert_called()
+
+    def test_RouterSettingContext(self):
+        self.test_config.set('profile', 'cisco')
+        self.assertEquals(horizon_contexts.RouterSettingContext()(),
+                          {'disable_router': False, })
+        self.test_config.set('profile', None)
+        self.assertEquals(horizon_contexts.RouterSettingContext()(),
+                          {'disable_router': True, })
