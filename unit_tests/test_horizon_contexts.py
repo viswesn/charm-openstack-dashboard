@@ -80,7 +80,11 @@ class TestHorizonContexts(CharmTestCase):
                           {'compress_offline': True, 'debug': False,
                            'default_role': 'Member', 'webroot': '/horizon',
                            'ubuntu_theme': True,
-                           'secret': 'secret'})
+                           'secret': 'secret',
+                           'support_profile': None,
+                           "neutron_network_lb": False,
+                           "neutron_network_firewall": False,
+                           "neutron_network_vpn": False})
 
     def test_HorizonContext_debug(self):
         self.test_config.set('debug', 'yes')
@@ -88,7 +92,11 @@ class TestHorizonContexts(CharmTestCase):
                           {'compress_offline': True, 'debug': True,
                            'default_role': 'Member', 'webroot': '/horizon',
                            'ubuntu_theme': True,
-                           'secret': 'secret'})
+                           'secret': 'secret',
+                           'support_profile': None,
+                           "neutron_network_lb": False,
+                           "neutron_network_firewall": False,
+                           "neutron_network_vpn": False})
 
     def test_HorizonContext_theme(self):
         self.test_config.set('ubuntu-theme', False)
@@ -96,7 +104,11 @@ class TestHorizonContexts(CharmTestCase):
                           {'compress_offline': True, 'debug': False,
                            'default_role': 'Member', 'webroot': '/horizon',
                            'ubuntu_theme': False,
-                           'secret': 'secret'})
+                           'secret': 'secret',
+                           'support_profile': None,
+                           "neutron_network_lb": False,
+                           "neutron_network_firewall": False,
+                           "neutron_network_vpn": False})
 
     def test_HorizonContext_compression(self):
         self.test_config.set('offline-compression', 'no')
@@ -104,7 +116,11 @@ class TestHorizonContexts(CharmTestCase):
                           {'compress_offline': False, 'debug': False,
                            'default_role': 'Member', 'webroot': '/horizon',
                            'ubuntu_theme': True,
-                           'secret': 'secret'})
+                           'secret': 'secret',
+                           'support_profile': None,
+                           "neutron_network_lb": False,
+                           "neutron_network_firewall": False,
+                           "neutron_network_vpn": False})
 
     def test_HorizonContext_role(self):
         self.test_config.set('default-role', 'foo')
@@ -112,7 +128,11 @@ class TestHorizonContexts(CharmTestCase):
                           {'compress_offline': True, 'debug': False,
                            'default_role': 'foo', 'webroot': '/horizon',
                            'ubuntu_theme': True,
-                           'secret': 'secret'})
+                           'secret': 'secret',
+                           'support_profile': None,
+                           "neutron_network_lb": False,
+                           "neutron_network_firewall": False,
+                           "neutron_network_vpn": False})
 
     def test_HorizonContext_webroot(self):
         self.test_config.set('webroot', '/')
@@ -120,7 +140,11 @@ class TestHorizonContexts(CharmTestCase):
                           {'compress_offline': True, 'debug': False,
                            'default_role': 'Member', 'webroot': '/',
                            'ubuntu_theme': True,
-                           'secret': 'secret'})
+                           'secret': 'secret',
+                           'support_profile': None,
+                           "neutron_network_lb": False,
+                           "neutron_network_firewall": False,
+                           "neutron_network_vpn": False})
 
     def test_IdentityServiceContext_not_related(self):
         self.relation_ids.return_value = []

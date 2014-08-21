@@ -130,7 +130,6 @@ def register_configs():
     if os.path.exists(os.path.dirname(ROUTER_SETTING)):
         configs.register(ROUTER_SETTING,
                          CONFIG_FILES[ROUTER_SETTING]['hook_contexts'])
-    
     return configs
 
 
