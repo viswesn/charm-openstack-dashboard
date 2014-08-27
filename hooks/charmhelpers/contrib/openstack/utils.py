@@ -3,7 +3,6 @@
 # Common python helper functions used for OpenStack charms.
 from collections import OrderedDict
 
-import apt_pkg as apt
 import subprocess
 import os
 import socket
@@ -24,7 +23,7 @@ from charmhelpers.contrib.storage.linux.lvm import (
 )
 
 from charmhelpers.core.host import lsb_release, mounts, umount
-from charmhelpers.fetch import apt_install
+from charmhelpers.fetch import apt_install, apt_cache
 from charmhelpers.contrib.storage.linux.utils import is_block_device, zap_disk
 from charmhelpers.contrib.storage.linux.loopback import ensure_loopback_device
 
@@ -85,6 +84,8 @@ def get_os_codename_install_source(src):
     '''Derive OpenStack release codename from a given installation source.'''
     ubuntu_rel = lsb_release()['DISTRIB_CODENAME']
     rel = ''
+    if src is None:
+        return rel
     if src in ['distro', 'distro-proposed']:
         try:
             rel = UBUNTU_OPENSTACK_RELEASE[ubuntu_rel]
@@ -132,13 +133,9 @@ def get_os_version_codename(codename):
 
 def get_os_codename_package(package, fatal=True):
     '''Derive OpenStack release codename from an installed package.'''
-    apt.init()
+    import apt_pkg as apt
 
-    # Tell apt to build an in-memory cache to prevent race conditions (if
-    # another process is already building the cache).
-    apt.config.set("Dir::Cache::pkgcache", "")
-
-    cache = apt.Cache()
+    cache = apt_cache()
 
     try:
         pkg = cache[package]
@@ -189,7 +186,7 @@ def get_os_version_package(pkg, fatal=True):
     for version, cname in vers_map.iteritems():
         if cname == codename:
             return version
-    #e = "Could not determine OpenStack version for package: %s" % pkg
+    # e = "Could not determine OpenStack version for package: %s" % pkg
     # error_out(e)
 
 
@@ -325,6 +322,7 @@ def openstack_upgrade_available(package):
 
     """
 
+    import apt_pkg as apt
     src = config('openstack-origin')
     cur_vers = get_os_version_package(package)
     available_vers = get_os_version_install_source(src)
