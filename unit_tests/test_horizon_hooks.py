@@ -28,7 +28,8 @@ TO_PATCH = [
     'unit_get',
     'log',
     'execd_preinstall',
-    'b64decode']
+    'b64decode',
+    'os_release']
 
 
 def passthrough(value):
@@ -48,10 +49,25 @@ class TestHorizonHooks(CharmTestCase):
 
     def test_install_hook(self):
         self.filter_installed_packages.return_value = ['foo', 'bar']
+        self.os_release.return_value = 'icehouse'
         self._call_hook('install')
         self.configure_installation_source.assert_called_with('distro')
         self.apt_update.assert_called_with(fatal=True)
         self.apt_install.assert_called_with(['foo', 'bar'], fatal=True)
+
+    def test_install_hook_icehouse_pkgs(self):
+        self.os_release.return_value = 'icehouse'
+        self._call_hook('install')
+        for pkg in ['nodejs', 'node-less']:
+            self.assertFalse(pkg in self.filter_installed_packages.call_args[0][0])
+        self.apt_install.assert_called()
+
+    def test_install_hook_pre_icehouse_pkgs(self):
+        self.os_release.return_value = 'grizzly'
+        self._call_hook('install')
+        for pkg in ['nodejs', 'node-less']:
+            self.assertTrue(pkg in self.filter_installed_packages.call_args[0][0])
+        self.apt_install.assert_called()
 
     @patch('charmhelpers.core.host.file_hash')
     @patch('charmhelpers.core.host.service')
