@@ -22,6 +22,7 @@ from charmhelpers.core.host import (
 from charmhelpers.contrib.openstack.utils import (
     configure_installation_source,
     openstack_upgrade_available,
+    os_release,
     save_script_rc
 )
 from horizon_utils import (
@@ -44,7 +45,10 @@ CONFIGS = register_configs()
 def install():
     configure_installation_source(config('openstack-origin'))
     apt_update(fatal=True)
-    apt_install(filter_installed_packages(PACKAGES), fatal=True)
+    packages = PACKAGES[:]
+    if os_release('openstack-dashboard') < 'icehouse':
+        packages += ['nodejs', 'node-less']
+    apt_install(filter_installed_packages(packages), fatal=True)
 
 
 @hooks.hook('upgrade-charm')
