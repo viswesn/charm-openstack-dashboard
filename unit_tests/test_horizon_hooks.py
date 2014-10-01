@@ -29,7 +29,10 @@ TO_PATCH = [
     'log',
     'execd_preinstall',
     'b64decode',
-    'os_release']
+    'os_release',
+    'get_iface_for_address',
+    'get_netmask_for_address',
+]
 
 
 def passthrough(value):
@@ -42,6 +45,7 @@ class TestHorizonHooks(CharmTestCase):
         super(TestHorizonHooks, self).setUp(hooks, TO_PATCH)
         self.config.side_effect = self.test_config.get
         self.b64decode.side_effect = passthrough
+        hooks.hooks._config_save = False
 
     def _call_hook(self, hookname):
         hooks.hooks.execute([
@@ -59,14 +63,18 @@ class TestHorizonHooks(CharmTestCase):
         self.os_release.return_value = 'icehouse'
         self._call_hook('install')
         for pkg in ['nodejs', 'node-less']:
-            self.assertFalse(pkg in self.filter_installed_packages.call_args[0][0])
+            self.assertFalse(
+                pkg in self.filter_installed_packages.call_args[0][0]
+            )
         self.apt_install.assert_called()
 
     def test_install_hook_pre_icehouse_pkgs(self):
         self.os_release.return_value = 'grizzly'
         self._call_hook('install')
         for pkg in ['nodejs', 'node-less']:
-            self.assertTrue(pkg in self.filter_installed_packages.call_args[0][0])
+            self.assertTrue(
+                pkg in self.filter_installed_packages.call_args[0][0]
+            )
         self.apt_install.assert_called()
 
     @patch('charmhelpers.core.host.file_hash')
@@ -94,6 +102,8 @@ class TestHorizonHooks(CharmTestCase):
             'vip_iface': 'eth101',
             'vip_cidr': '19'
         }
+        self.get_iface_for_address.return_value = 'eth101'
+        self.get_netmask_for_address.return_value = '19'
         self.get_hacluster_config.return_value = conf
         self._call_hook('ha-relation-joined')
         ex_args = {
@@ -101,7 +111,7 @@ class TestHorizonHooks(CharmTestCase):
             'init_services': {
                 'res_horizon_haproxy': 'haproxy'},
             'resource_params': {
-                'res_horizon_vip':
+                'res_horizon_eth101_vip':
                 'params ip="192.168.25.163" cidr_netmask="19"'
                 ' nic="eth101"',
                 'res_horizon_haproxy': 'op monitor interval="5s"'},
@@ -109,7 +119,7 @@ class TestHorizonHooks(CharmTestCase):
             'clones': {
                 'cl_horizon_haproxy': 'res_horizon_haproxy'},
             'resources': {
-                'res_horizon_vip': 'ocf:heartbeat:IPaddr2',
+                'res_horizon_eth101_vip': 'ocf:heartbeat:IPaddr2',
                 'res_horizon_haproxy': 'lsb:haproxy'}
         }
         self.relation_set.assert_called_with(**ex_args)
