@@ -40,6 +40,8 @@ APACHE_24_SSL = "%s/sites-available/default-ssl.conf" % (APACHE_CONF_DIR)
 APACHE_24_DEFAULT = "%s/sites-available/000-default.conf" % (APACHE_CONF_DIR)
 APACHE_SSL = "%s/sites-available/default-ssl" % (APACHE_CONF_DIR)
 APACHE_DEFAULT = "%s/sites-available/default" % (APACHE_CONF_DIR)
+ROUTER_SETTING = \
+    "/usr/share/openstack-dashboard/openstack_dashboard/enabled/_40_router.py"
 
 TEMPLATES = 'templates'
 
@@ -86,6 +88,10 @@ CONFIG_FILES = OrderedDict([
         'hook_contexts': [horizon_contexts.HorizonHAProxyContext()],
         'services': ['haproxy'],
     }),
+    (ROUTER_SETTING, {
+        'hook_contexts': [horizon_contexts.RouterSettingContext()],
+        'services': ['apache2'],
+    }),
 ])
 
 
@@ -122,6 +128,9 @@ def register_configs():
         configs.register(APACHE_SSL,
                          CONFIG_FILES[APACHE_SSL]['hook_contexts'])
 
+    if os.path.exists(os.path.dirname(ROUTER_SETTING)):
+        configs.register(ROUTER_SETTING,
+                         CONFIG_FILES[ROUTER_SETTING]['hook_contexts'])
     return configs
 
 

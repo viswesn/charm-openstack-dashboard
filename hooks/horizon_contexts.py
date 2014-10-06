@@ -84,6 +84,8 @@ class HorizonContext(OSContextGenerator):
             "webroot": config('webroot'),
             "ubuntu_theme": config('ubuntu-theme') in ['yes', True],
             "secret": config('secret') or pwgen(),
+            'support_profile': config('profile')
+            if config('profile') in ['cisco'] else None,
             "neutron_network_lb": config("neutron-network-lb"),
             "neutron_network_firewall": config("neutron-network-firewall"),
             "neutron_network_vpn": config("neutron-network-vpn"),
@@ -122,4 +124,13 @@ class ApacheSSLContext(OSContextGenerator):
             ctxt = {
                 'ssl_configured': False,
             }
+        return ctxt
+
+
+class RouterSettingContext(OSContextGenerator):
+    def __call__(self):
+        ''' Enable/Disable Router Tab on horizon '''
+        ctxt = {
+            'disable_router': False if config('profile') in ['cisco'] else True
+        }
         return ctxt
