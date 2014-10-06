@@ -32,6 +32,10 @@ from horizon_utils import (
     enable_ssl,
     do_openstack_upgrade
 )
+from charmhelpers.contrib.network.ip import (
+    get_iface_for_address,
+    get_netmask_for_address,
+)
 from charmhelpers.contrib.hahelpers.apache import install_ca_cert
 from charmhelpers.contrib.hahelpers.cluster import get_hacluster_config
 from charmhelpers.payload.execd import execd_preinstall
@@ -114,15 +118,30 @@ def cluster_relation():
 def ha_relation_joined():
     config = get_hacluster_config()
     resources = {
-        'res_horizon_vip': 'ocf:heartbeat:IPaddr2',
         'res_horizon_haproxy': 'lsb:haproxy'
     }
-    vip_params = 'params ip="{}" cidr_netmask="{}" nic="{}"'.format(
-        config['vip'], config['vip_cidr'], config['vip_iface'])
+
     resource_params = {
-        'res_horizon_vip': vip_params,
         'res_horizon_haproxy': 'op monitor interval="5s"'
     }
+
+    vip_group = []
+    for vip in config['vip'].split():
+        iface = get_iface_for_address(vip)
+        if iface is not None:
+            vip_key = 'res_horizon_{}_vip'.format(iface)
+            resources[vip_key] = 'ocf:heartbeat:IPaddr2'
+            resource_params[vip_key] = (
+                'params ip="{vip}" cidr_netmask="{netmask}"'
+                ' nic="{iface}"'.format(vip=vip,
+                                        iface=iface,
+                                        netmask=get_netmask_for_address(vip))
+            )
+            vip_group.append(vip_key)
+
+    if len(vip_group) > 1:
+        relation_set(groups={'grp_horizon_vips': ' '.join(vip_group)})
+
     init_services = {
         'res_horizon_haproxy': 'haproxy'
     }

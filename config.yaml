@@ -34,15 +34,8 @@ options:
             Setting this to True will force all services to log to the syslog.
     vip:
         type: string
+        default:
         description: "Virtual IP to use to front openstack dashboard ha configuration"
-    vip_iface:
-        type: string
-        default: eth0
-        description: "Network Interface where to place the Virtual IP"
-    vip_cidr:
-        type: int
-        default: 24
-        description: "Netmask that will be used for the Virtual IP"
     ha-bindiface:
         type: string
         default: eth0
@@ -58,6 +51,7 @@ options:
     # User provided SSL cert and key
     ssl_cert:
         type: string
+        default:
         description: |
           Base64 encoded SSL certificate to install and use for API ports.
           .
@@ -70,6 +64,7 @@ options:
           do so).
     ssl_key:
         type: string
+        default:
         description: |
           Base64 encoded SSL key to use with certificate specified as ssl_cert.
     offline-compression:
@@ -86,6 +81,7 @@ options:
         description: Use Ubuntu theme for the dashboard.
     secret:
         type: string
+        default:
         description: Secret for Horizon to use when securing internal data; set this when using multiple dashboard units.
     neutron-network-lb:
         type: boolean
