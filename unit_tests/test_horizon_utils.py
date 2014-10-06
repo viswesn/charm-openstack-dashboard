@@ -45,6 +45,8 @@ class TestHorizonUtils(CharmTestCase):
             ('/etc/apache2/sites-available/000-default.conf', ['apache2']),
             ('/etc/apache2/ports.conf', ['apache2']),
             ('/etc/haproxy/haproxy.cfg', ['haproxy']),
+            ('/usr/share/openstack-dashboard/openstack_dashboard/enabled/'
+             '_40_router.py', ['apache2']),
         ])
         self.assertEquals(horizon_utils.restart_map(), ex_map)
 

@@ -83,6 +83,10 @@ options:
         type: string
         default:
         description: Secret for Horizon to use when securing internal data; set this when using multiple dashboard units.
+    profile:
+        type: string
+        default:
+        description: Default profile for the dashboard. Eg. cisco
     neutron-network-lb:
         type: boolean
         default: False
