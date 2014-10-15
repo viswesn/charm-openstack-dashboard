@@ -16,6 +16,9 @@ from charmhelpers.contrib.openstack.context import (
 from charmhelpers.contrib.hahelpers.apache import (
     get_cert
 )
+from charmhelpers.contrib.network.ip import (
+    get_ipv6_addr
+)
 
 from charmhelpers.core.host import pwgen
 
@@ -32,7 +35,10 @@ class HorizonHAProxyContext(HAProxyContext):
         '''
         cluster_hosts = {}
         l_unit = local_unit().replace('/', '-')
-        cluster_hosts[l_unit] = unit_get('private-address')
+        if config('prefer-ipv6'):
+            cluster_hosts[l_unit] = get_ipv6_addr(exc_list=[config('vip')])[0]
+        else:
+            cluster_hosts[l_unit] = unit_get('private-address')
 
         for rid in relation_ids('cluster'):
             for unit in related_units(rid):

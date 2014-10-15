@@ -30,11 +30,14 @@ from horizon_utils import (
     restart_map,
     LOCAL_SETTINGS, HAPROXY_CONF,
     enable_ssl,
-    do_openstack_upgrade
+    do_openstack_upgrade,
+    setup_ipv6
 )
 from charmhelpers.contrib.network.ip import (
     get_iface_for_address,
     get_netmask_for_address,
+    get_ipv6_addr,
+    is_ipv6
 )
 from charmhelpers.contrib.hahelpers.apache import install_ca_cert
 from charmhelpers.contrib.hahelpers.cluster import get_hacluster_config
@@ -66,6 +69,12 @@ def upgrade_charm():
 @hooks.hook('config-changed')
 @restart_on_change(restart_map())
 def config_changed():
+    if config('prefer-ipv6'):
+        setup_ipv6()
+        localhost = 'ip6-localhost'
+    else:
+        localhost = 'localhost'
+
     # Ensure default role changes are propagated to keystone
     for relid in relation_ids('identity-service'):
         keystone_joined(relid)
@@ -75,7 +84,8 @@ def config_changed():
 
     env_vars = {
         'OPENSTACK_URL_HORIZON':
-        "http://localhost:70{}|Login+-+OpenStack".format(
+        "http://{}:70{}|Login+-+OpenStack".format(
+            localhost,
             config('webroot')
         ),
         'OPENSTACK_SERVICE_HORIZON': "apache2",
@@ -107,6 +117,14 @@ def keystone_changed():
         install_ca_cert(b64decode(relation_get('ca_cert')))
 
 
+@hooks.hook('cluster-relation-joined')
+def cluster_joined(relation_id=None):
+    if config('prefer-ipv6'):
+        private_addr = get_ipv6_addr(exc_list=[config('vip')])[0]
+        relation_set(relation_id=relation_id,
+                     relation_settings={'private-address': private_addr})
+
+
 @hooks.hook('cluster-relation-departed',
             'cluster-relation-changed')
 @restart_on_change(restart_map())
@@ -116,7 +134,7 @@ def cluster_relation():
 
 @hooks.hook('ha-relation-joined')
 def ha_relation_joined():
-    config = get_hacluster_config()
+    cluster_config = get_hacluster_config()
     resources = {
         'res_horizon_haproxy': 'lsb:haproxy'
     }
@@ -126,14 +144,22 @@ def ha_relation_joined():
     }
 
     vip_group = []
-    for vip in config['vip'].split():
+    for vip in cluster_config['vip'].split():
+        if is_ipv6(vip):
+            res_ks_vip = 'ocf:heartbeat:IPv6addr'
+            vip_params = 'ipv6addr'
+        else:
+            res_ks_vip = 'ocf:heartbeat:IPaddr2'
+            vip_params = 'ip'
+
         iface = get_iface_for_address(vip)
         if iface is not None:
             vip_key = 'res_horizon_{}_vip'.format(iface)
-            resources[vip_key] = 'ocf:heartbeat:IPaddr2'
+            resources[vip_key] = res_ks_vip
             resource_params[vip_key] = (
-                'params ip="{vip}" cidr_netmask="{netmask}"'
-                ' nic="{iface}"'.format(vip=vip,
+                'params {ip}="{vip}" cidr_netmask="{netmask}"'
+                ' nic="{iface}"'.format(ip=vip_params,
+                                        vip=vip,
                                         iface=iface,
                                         netmask=get_netmask_for_address(vip))
             )
@@ -149,8 +175,8 @@ def ha_relation_joined():
         'cl_horizon_haproxy': 'res_horizon_haproxy'
     }
     relation_set(init_services=init_services,
-                 corosync_bindiface=config['ha-bindiface'],
-                 corosync_mcastport=config['ha-mcastport'],
+                 corosync_bindiface=cluster_config['ha-bindiface'],
+                 corosync_mcastport=cluster_config['ha-mcastport'],
                  resources=resources,
                  resource_params=resource_params,
                  clones=clones)
