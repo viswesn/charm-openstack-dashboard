@@ -6,9 +6,6 @@ import subprocess
 import os
 from collections import OrderedDict
 
-from charmhelpers.contrib.openstack.context import (
-    IdentityServiceContext
-)
 from charmhelpers.contrib.openstack.utils import (
     get_os_codename_package,
     get_os_codename_install_source,
@@ -54,7 +51,7 @@ TEMPLATES = 'templates'
 CONFIG_FILES = OrderedDict([
     (LOCAL_SETTINGS, {
         'hook_contexts': [horizon_contexts.HorizonContext(),
-                          IdentityServiceContext(),
+                          horizon_contexts.IdentityServiceContext(),
                           context.SyslogContext()],
         'services': ['apache2']
     }),
