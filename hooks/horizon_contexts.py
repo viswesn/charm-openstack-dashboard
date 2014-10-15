@@ -10,8 +10,7 @@ from charmhelpers.core.hookenv import (
 )
 from charmhelpers.contrib.openstack.context import (
     OSContextGenerator,
-    HAProxyContext,
-    context_complete
+    HAProxyContext
 )
 from charmhelpers.contrib.hahelpers.apache import (
     get_cert
@@ -58,26 +57,6 @@ class HorizonHAProxyContext(HAProxyContext):
             }
         }
         return ctxt
-
-
-class IdentityServiceContext(OSContextGenerator):
-    def __call__(self):
-        ''' Provide context for Identity Service relation '''
-        ctxt = {}
-        for r_id in relation_ids('identity-service'):
-            for unit in related_units(r_id):
-                ctxt['service_host'] = relation_get('service_host',
-                                                    rid=r_id,
-                                                    unit=unit)
-                ctxt['service_port'] = relation_get('service_port',
-                                                    rid=r_id,
-                                                    unit=unit)
-                ctxt['service_protocol'] = relation_get('service_protocol',
-                                                        rid=r_id,
-                                                        unit=unit) or 'http'
-                if context_complete(ctxt):
-                    return ctxt
-        return {}
 
 
 class HorizonContext(OSContextGenerator):
