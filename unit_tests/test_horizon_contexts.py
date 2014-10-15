@@ -14,6 +14,7 @@ TO_PATCH = [
     'log',
     'get_cert',
     'b64decode',
+    'context_complete',
     'local_unit',
     'unit_get',
     'pwgen'
@@ -144,6 +145,40 @@ class TestHorizonContexts(CharmTestCase):
                            "neutron_network_lb": False,
                            "neutron_network_firewall": False,
                            "neutron_network_vpn": False})
+
+    def test_IdentityServiceContext_not_related(self):
+        self.relation_ids.return_value = []
+        self.context_complete.return_value = False
+        self.assertEquals(horizon_contexts.IdentityServiceContext()(),
+                          {})
+
+    def test_IdentityServiceContext_no_units(self):
+        self.relation_ids.return_value = ['foo']
+        self.related_units.return_value = []
+        self.context_complete.return_value = False
+        self.assertEquals(horizon_contexts.IdentityServiceContext()(),
+                          {})
+
+    @patch("horizon_contexts.format_ipv6_addr")
+    def test_IdentityServiceContext_no_data(self, mock_format_ipv6_addr):
+        self.relation_ids.return_value = ['foo']
+        self.related_units.return_value = ['bar']
+        self.relation_get.side_effect = self.test_relation.get
+        self.context_complete.return_value = False
+        self.assertEquals(horizon_contexts.IdentityServiceContext()(),
+                          {})
+
+    @patch("horizon_contexts.format_ipv6_addr")
+    def test_IdentityServiceContext_data(self, mock_format_ipv6_addr):
+        mock_format_ipv6_addr.return_value = "foo"
+        self.relation_ids.return_value = ['foo']
+        self.related_units.return_value = ['bar', 'baz']
+        self.relation_get.side_effect = self.test_relation.get
+        self.test_relation.set({'service_host': 'foo', 'service_port': 5000})
+        self.context_complete.return_value = True
+        self.assertEquals(horizon_contexts.IdentityServiceContext()(),
+                          {'service_host': 'foo', 'service_port': 5000,
+                           'service_protocol': 'http'})
 
     def test_HorizonHAProxyContext_no_cluster(self):
         self.relation_ids.return_value = []

@@ -10,13 +10,15 @@ from charmhelpers.core.hookenv import (
 )
 from charmhelpers.contrib.openstack.context import (
     OSContextGenerator,
-    HAProxyContext
+    HAProxyContext,
+    context_complete
 )
 from charmhelpers.contrib.hahelpers.apache import (
     get_cert
 )
 from charmhelpers.contrib.network.ip import (
-    get_ipv6_addr
+    get_ipv6_addr,
+    format_ipv6_addr,
 )
 
 from charmhelpers.core.host import pwgen
@@ -57,6 +59,32 @@ class HorizonHAProxyContext(HAProxyContext):
             }
         }
         return ctxt
+
+
+# NOTE: this is a stripped-down version of
+# contrib.openstack.IdentityServiceContext
+class IdentityServiceContext(OSContextGenerator):
+    interfaces = ['identity-service']
+
+    def __call__(self):
+        log('Generating template context for identity-service')
+        ctxt = {}
+
+        for rid in relation_ids('identity-service'):
+            for unit in related_units(rid):
+                rdata = relation_get(rid=rid, unit=unit)
+                serv_host = rdata.get('service_host')
+                serv_host = format_ipv6_addr(serv_host) or serv_host
+
+                ctxt = {
+                    'service_port': rdata.get('service_port'),
+                    'service_host': serv_host,
+                    'service_protocol':
+                    rdata.get('service_protocol') or 'http',
+                }
+                if context_complete(ctxt):
+                    return ctxt
+        return {}
 
 
 class HorizonContext(OSContextGenerator):
