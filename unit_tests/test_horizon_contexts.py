@@ -159,7 +159,8 @@ class TestHorizonContexts(CharmTestCase):
         self.assertEquals(horizon_contexts.IdentityServiceContext()(),
                           {})
 
-    def test_IdentityServiceContext_no_data(self):
+    @patch("horizon_contexts.format_ipv6_addr")
+    def test_IdentityServiceContext_no_data(self, mock_format_ipv6_addr):
         self.relation_ids.return_value = ['foo']
         self.related_units.return_value = ['bar']
         self.relation_get.side_effect = self.test_relation.get
@@ -167,7 +168,9 @@ class TestHorizonContexts(CharmTestCase):
         self.assertEquals(horizon_contexts.IdentityServiceContext()(),
                           {})
 
-    def test_IdentityServiceContext_data(self):
+    @patch("horizon_contexts.format_ipv6_addr")
+    def test_IdentityServiceContext_data(self, mock_format_ipv6_addr):
+        mock_format_ipv6_addr.return_value = "foo"
         self.relation_ids.return_value = ['foo']
         self.related_units.return_value = ['bar', 'baz']
         self.relation_get.side_effect = self.test_relation.get

@@ -16,6 +16,10 @@ from charmhelpers.contrib.openstack.context import (
 from charmhelpers.contrib.hahelpers.apache import (
     get_cert
 )
+from charmhelpers.contrib.network.ip import (
+    get_ipv6_addr,
+    format_ipv6_addr,
+)
 
 from charmhelpers.core.host import pwgen
 
@@ -32,7 +36,10 @@ class HorizonHAProxyContext(HAProxyContext):
         '''
         cluster_hosts = {}
         l_unit = local_unit().replace('/', '-')
-        cluster_hosts[l_unit] = unit_get('private-address')
+        if config('prefer-ipv6'):
+            cluster_hosts[l_unit] = get_ipv6_addr(exc_list=[config('vip')])[0]
+        else:
+            cluster_hosts[l_unit] = unit_get('private-address')
 
         for rid in relation_ids('cluster'):
             for unit in related_units(rid):
@@ -54,21 +61,27 @@ class HorizonHAProxyContext(HAProxyContext):
         return ctxt
 
 
+# NOTE: this is a stripped-down version of
+# contrib.openstack.IdentityServiceContext
 class IdentityServiceContext(OSContextGenerator):
+    interfaces = ['identity-service']
+
     def __call__(self):
-        ''' Provide context for Identity Service relation '''
+        log('Generating template context for identity-service')
         ctxt = {}
-        for r_id in relation_ids('identity-service'):
-            for unit in related_units(r_id):
-                ctxt['service_host'] = relation_get('service_host',
-                                                    rid=r_id,
-                                                    unit=unit)
-                ctxt['service_port'] = relation_get('service_port',
-                                                    rid=r_id,
-                                                    unit=unit)
-                ctxt['service_protocol'] = relation_get('service_protocol',
-                                                        rid=r_id,
-                                                        unit=unit) or 'http'
+
+        for rid in relation_ids('identity-service'):
+            for unit in related_units(rid):
+                rdata = relation_get(rid=rid, unit=unit)
+                serv_host = rdata.get('service_host')
+                serv_host = format_ipv6_addr(serv_host) or serv_host
+
+                ctxt = {
+                    'service_port': rdata.get('service_port'),
+                    'service_host': serv_host,
+                    'service_protocol':
+                    rdata.get('service_protocol') or 'http',
+                }
                 if context_complete(ctxt):
                     return ctxt
         return {}
