@@ -42,6 +42,7 @@ from charmhelpers.contrib.network.ip import (
 from charmhelpers.contrib.hahelpers.apache import install_ca_cert
 from charmhelpers.contrib.hahelpers.cluster import get_hacluster_config
 from charmhelpers.payload.execd import execd_preinstall
+from charmhelpers.contrib.charmsupport import nrpe
 from base64 import b64decode
 
 hooks = Hooks()
@@ -63,6 +64,7 @@ def install():
 def upgrade_charm():
     execd_preinstall()
     apt_install(filter_installed_packages(PACKAGES), fatal=True)
+    update_nrpe_config()
     CONFIGS.write_all()
 
 
@@ -93,6 +95,7 @@ def config_changed():
         'OPENSTACK_PORT_HORIZON': 70
     }
     save_script_rc(**env_vars)
+    update_nrpe_config()
     CONFIGS.write_all()
     open_port(80)
     open_port(443)
@@ -187,6 +190,19 @@ def website_relation_joined():
     relation_set(port=70,
                  hostname=unit_get('private-address'))
 
+
+@hooks.hook('nrpe-external-master-relation-joined', 'nrpe-external-master-relation-changed')
+def update_nrpe_config():
+    nrpe_compat = nrpe.NRPE()
+    conf = nrpe_compat.config
+    check_http_params = conf.get('nagios_check_http_params')
+    if check_http_params:
+        nrpe_compat.add_check(
+            shortname='vhost',
+            description='Check Virtual Host',
+            check_cmd='check_http %s' % check_http_params
+        )
+    nrpe_compat.write()
 
 def main():
     try:
