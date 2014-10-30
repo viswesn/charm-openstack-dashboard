@@ -9,3 +9,4 @@ include:
     - contrib.storage
     - contrib.network.ip
     - payload.execd
+    - contrib.charmsupport
