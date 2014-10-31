@@ -69,22 +69,33 @@ class IdentityServiceContext(OSContextGenerator):
     def __call__(self):
         log('Generating template context for identity-service')
         ctxt = {}
+        regions = []
 
+        # TODO (wolsen) each region is normally split by keystone
+        # and enpoints created for each word in the region string.
+        # handle this scenario.
         for rid in relation_ids('identity-service'):
             for unit in related_units(rid):
                 rdata = relation_get(rid=rid, unit=unit)
                 serv_host = rdata.get('service_host')
                 serv_host = format_ipv6_addr(serv_host) or serv_host
 
-                ctxt = {
+                local_ctxt = {
                     'service_port': rdata.get('service_port'),
                     'service_host': serv_host,
                     'service_protocol':
                     rdata.get('service_protocol') or 'http',
+                    'region': rdata.get('region')
                 }
-                if context_complete(ctxt):
-                    return ctxt
-        return {}
+                if context_complete(local_ctxt):
+                    regions.append(local_ctxt)
+
+        if len(regions) > 0:
+            # TODO (wolsen) added all the information from region[0]
+            # to not change template much. Need to refactor this.
+            ctxt['regions'] = regions
+            ctxt.update(regions[0])
+        return ctxt
 
 
 class HorizonContext(OSContextGenerator):
