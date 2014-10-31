@@ -10,6 +10,7 @@ from charmhelpers.core.hookenv import (
     relation_set,
     relation_get,
     relation_ids,
+    relations_of_type,
     unit_get
 )
 from charmhelpers.fetch import (
@@ -193,7 +194,14 @@ def website_relation_joined():
 
 @hooks.hook('nrpe-external-master-relation-joined', 'nrpe-external-master-relation-changed')
 def update_nrpe_config():
-    nrpe_compat = nrpe.NRPE()
+    # Find out if nrpe set nagios_hostname
+    hostname = None
+    for rel in relations_of_type('nrpe-external-master'):
+        if 'nagios_hostname' in rel:
+            hostname = rel['nagios_hostname']
+            break
+    nrpe_compat = nrpe.NRPE(hostname=hostname)
+
     conf = nrpe_compat.config
     check_http_params = conf.get('nagios_check_http_params')
     if check_http_params:
