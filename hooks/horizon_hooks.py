@@ -11,6 +11,7 @@ from charmhelpers.core.hookenv import (
     relation_get,
     relation_ids,
     relations_of_type,
+    local_unit,
     unit_get
 )
 from charmhelpers.fetch import (
@@ -199,15 +200,18 @@ def update_nrpe_config():
     for rel in relations_of_type('nrpe-external-master'):
         if 'nagios_hostname' in rel:
             hostname = rel['nagios_hostname']
+            host_context = rel['nagios_host_context']
             break
     nrpe_compat = nrpe.NRPE(hostname=hostname)
+
+    current_unit = "%s:%s" % (host_context, local_unit())
 
     conf = nrpe_compat.config
     check_http_params = conf.get('nagios_check_http_params')
     if check_http_params:
         nrpe_compat.add_check(
             shortname='vhost',
-            description='Check Virtual Host',
+            description='Check Virtual Host {%s}' % current_unit,
             check_cmd='check_http %s' % check_http_params
         )
     nrpe_compat.write()
