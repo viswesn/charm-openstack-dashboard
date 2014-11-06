@@ -197,6 +197,7 @@ def website_relation_joined():
 def update_nrpe_config():
     # Find out if nrpe set nagios_hostname
     hostname = None
+    host_context = None
     for rel in relations_of_type('nrpe-external-master'):
         if 'nagios_hostname' in rel:
             hostname = rel['nagios_hostname']
@@ -204,7 +205,10 @@ def update_nrpe_config():
             break
     nrpe_compat = nrpe.NRPE(hostname=hostname)
 
-    current_unit = "%s:%s" % (host_context, local_unit())
+    if host_context:
+        current_unit = "%s:%s" % (host_context, local_unit())
+    else:
+        current_unit = local_unit()
 
     conf = nrpe_compat.config
     check_http_params = conf.get('nagios_check_http_params')
