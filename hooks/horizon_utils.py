@@ -155,6 +155,14 @@ def restart_map():
     return OrderedDict(_map)
 
 
+def services():
+    ''' Returns a list of services associate with this charm '''
+    _services = []
+    for v in restart_map().values():
+        _services = _services + v
+    return list(set(_services))
+
+
 def enable_ssl():
     ''' Enable SSL support in local apache2 instance '''
     subprocess.call(['a2ensite', 'default-ssl'])

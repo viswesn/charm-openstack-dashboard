@@ -2,6 +2,7 @@
 # vim: set ts=4:et
 
 import sys
+import os
 from charmhelpers.core.hookenv import (
     Hooks, UnregisteredHookError,
     log,
@@ -30,6 +31,7 @@ from charmhelpers.contrib.openstack.utils import (
 from horizon_utils import (
     PACKAGES, register_configs,
     restart_map,
+    services,
     LOCAL_SETTINGS, HAPROXY_CONF,
     enable_ssl,
     do_openstack_upgrade,
@@ -193,7 +195,8 @@ def website_relation_joined():
                  hostname=unit_get('private-address'))
 
 
-@hooks.hook('nrpe-external-master-relation-joined', 'nrpe-external-master-relation-changed')
+@hooks.hook('nrpe-external-master-relation-joined',
+            'nrpe-external-master-relation-changed')
 def update_nrpe_config():
     # Find out if nrpe set nagios_hostname
     hostname = None
@@ -218,7 +221,38 @@ def update_nrpe_config():
             description='Check Virtual Host {%s}' % current_unit,
             check_cmd='check_http %s' % check_http_params
         )
+
+    services_to_monitor = services()
+    for service in services_to_monitor:
+        upstart_init = '/etc/init/%s.conf' % service
+        sysv_init = '/etc/init.d/%s' % service
+
+        if os.path.exists(upstart_init):
+            nrpe_compat.add_check(
+                shortname=service,
+                description='process check {%s}' % current_unit,
+                check_cmd='check_upstart_job %s' % check_http_params
+                )
+        elif os.path.exists(sysv_init):
+            cronpath = '/etc/cron.d/nagios-service-check-%s' % service
+            checkpath = os.path.join(os.environ['CHARM_DIR'],
+                                     'files/nrpe-external-master',
+                                     'check_exit_status.pl'),
+            cron_template = '*/5 * * * * root %s -s \
+/etc/init.d/%s status > /var/lib/nagios/service-check-%s.txt\n' \
+                % (checkpath[0], service, service)
+            f = open(cronpath, 'w')
+            f.write(cron_template)
+            f.close()
+            nrpe_compat.add_check(
+                shortname=service,
+                description='process check {%s}' % current_unit,
+                check_cmd='check_status_file.py -f \
+/var/lib/nagios/service-check-%s.txt' % service,
+                )
+
     nrpe_compat.write()
+
 
 def main():
     try:
