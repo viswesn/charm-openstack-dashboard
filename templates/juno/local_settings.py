@@ -132,6 +132,11 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 #     ('http://cluster1.example.com:5000/v2.0', 'cluster1'),
 #     ('http://cluster2.example.com:5000/v2.0', 'cluster2'),
 # ]
+AVAILABLE_REGIONS = [
+{% for r in regions -%}
+    ('{{r.service_protocol}}://{{r.service_host}}:{{r.service_port}}/v2.0', '{{r.region}}'),
+{% endfor -%}
+]
 
 OPENSTACK_HOST = "{{ service_host }}"
 OPENSTACK_KEYSTONE_URL = "{{ service_protocol }}://%s:{{ service_port }}/v2.0" % OPENSTACK_HOST
