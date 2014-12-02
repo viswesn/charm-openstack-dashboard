@@ -91,9 +91,8 @@ class IdentityServiceContext(OSContextGenerator):
                 # Update the service endpoint and title for each available
                 # region in order to support multi-region deployments
                 if region is not None:
-                    endpoint = ("%(service_protocol)s://"
-                                "%(service_host)s:%(service_port)s/v2.0") % \
-                                local_ctxt
+                    endpoint = ("%(service_protocol)s://%(service_host)s"
+                                ":%(service_port)s/v2.0") % local_ctxt
                     for reg in region.split():
                         regions.add((endpoint, reg))
 

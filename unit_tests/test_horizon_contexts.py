@@ -203,12 +203,12 @@ class TestHorizonContexts(CharmTestCase):
                                 'region': 'regionOne regionTwo'})
         self.context_complete.return_value = True
         self.assertEqual(horizon_contexts.IdentityServiceContext()(),
-                          {'service_host': 'foo', 'service_port': 5000,
-                           'service_protocol': 'http',
-                           'regions': [{'endpoint': 'http://foo:5000/v2.0',
-                                        'title': 'regionOne'},
-                                       {'endpoint': 'http://foo:5000/v2.0',
-                                        'title': 'regionTwo'}]})
+                         {'service_host': 'foo', 'service_port': 5000,
+                          'service_protocol': 'http',
+                          'regions': [{'endpoint': 'http://foo:5000/v2.0',
+                                       'title': 'regionOne'},
+                                      {'endpoint': 'http://foo:5000/v2.0',
+                                       'title': 'regionTwo'}]})
 
     def test_HorizonHAProxyContext_no_cluster(self):
         self.relation_ids.return_value = []
