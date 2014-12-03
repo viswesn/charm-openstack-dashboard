@@ -75,6 +75,11 @@ def config_changed():
     else:
         localhost = 'localhost'
 
+    if (os_release('openstack-dashboard') == 'icehouse' and
+            config('offline-compression') in ['no', 'False']):
+        apt_install(filter_installed_packages(['python-lesscpy']),
+                    fatal=True)
+
     # Ensure default role changes are propagated to keystone
     for relid in relation_ids('identity-service'):
         keystone_joined(relid)
