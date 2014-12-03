@@ -5,7 +5,7 @@ lint:
 	@flake8 --exclude hooks/charmhelpers hooks unit_tests
 	@charm proof
 
-test:
+unit_test:
 	@echo Starting tests...
 	@$(PYTHON) /usr/bin/nosetests --nologcapture unit_tests
 
