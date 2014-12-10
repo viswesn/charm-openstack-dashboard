@@ -8,4 +8,5 @@ include:
     - contrib.hahelpers
     - contrib.storage
     - contrib.network.ip
+    - contrib.python.packages
     - payload.execd
