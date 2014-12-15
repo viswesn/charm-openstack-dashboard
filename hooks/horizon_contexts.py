@@ -69,22 +69,41 @@ class IdentityServiceContext(OSContextGenerator):
     def __call__(self):
         log('Generating template context for identity-service')
         ctxt = {}
+        regions = set()
 
         for rid in relation_ids('identity-service'):
             for unit in related_units(rid):
                 rdata = relation_get(rid=rid, unit=unit)
                 serv_host = rdata.get('service_host')
                 serv_host = format_ipv6_addr(serv_host) or serv_host
+                region = rdata.get('region')
 
-                ctxt = {
+                local_ctxt = {
                     'service_port': rdata.get('service_port'),
                     'service_host': serv_host,
                     'service_protocol':
-                    rdata.get('service_protocol') or 'http',
+                    rdata.get('service_protocol') or 'http'
                 }
-                if context_complete(ctxt):
-                    return ctxt
-        return {}
+
+                if not context_complete(local_ctxt):
+                    continue
+
+                # Update the service endpoint and title for each available
+                # region in order to support multi-region deployments
+                if region is not None:
+                    endpoint = ("%(service_protocol)s://%(service_host)s"
+                                ":%(service_port)s/v2.0") % local_ctxt
+                    for reg in region.split():
+                        regions.add((endpoint, reg))
+
+                if len(ctxt) == 0:
+                    ctxt = local_ctxt
+
+        if len(regions) > 1:
+            avail_regions = map(lambda r: {'endpoint': r[0], 'title': r[1]},
+                                regions)
+            ctxt['regions'] = sorted(avail_regions)
+        return ctxt
 
 
 class HorizonContext(OSContextGenerator):
