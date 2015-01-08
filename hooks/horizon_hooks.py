@@ -50,6 +50,7 @@ CONFIGS = register_configs()
 
 @hooks.hook('install')
 def install():
+    execd_preinstall()
     configure_installation_source(config('openstack-origin'))
     apt_update(fatal=True)
     packages = PACKAGES[:]
