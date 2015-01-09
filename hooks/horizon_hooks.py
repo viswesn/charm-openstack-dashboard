@@ -55,6 +55,7 @@ CONFIGS = register_configs()
 
 @hooks.hook('install')
 def install():
+    execd_preinstall()
     configure_installation_source(config('openstack-origin'))
     apt_update(fatal=True)
     packages = PACKAGES[:]
@@ -80,6 +81,11 @@ def config_changed():
         localhost = 'ip6-localhost'
     else:
         localhost = 'localhost'
+
+    if (os_release('openstack-dashboard') == 'icehouse' and
+            config('offline-compression') in ['no', 'False']):
+        apt_install(filter_installed_packages(['python-lesscpy']),
+                    fatal=True)
 
     # Ensure default role changes are propagated to keystone
     for relid in relation_ids('identity-service'):
