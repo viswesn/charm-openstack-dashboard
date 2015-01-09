@@ -32,6 +32,7 @@ TO_PATCH = [
     'os_release',
     'get_iface_for_address',
     'get_netmask_for_address',
+    'update_nrpe_config',
 ]
 
 
