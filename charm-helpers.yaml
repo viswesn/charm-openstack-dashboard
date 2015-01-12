@@ -10,3 +10,4 @@ include:
     - contrib.network.ip
     - contrib.python.packages
     - payload.execd
+    - contrib.charmsupport
