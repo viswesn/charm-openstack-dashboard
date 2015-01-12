@@ -2,7 +2,6 @@
 # vim: set ts=4:et
 
 import sys
-import os
 from charmhelpers.core.hookenv import (
     Hooks, UnregisteredHookError,
     log,
@@ -11,8 +10,6 @@ from charmhelpers.core.hookenv import (
     relation_set,
     relation_get,
     relation_ids,
-    relations_of_type,
-    local_unit,
     unit_get
 )
 from charmhelpers.fetch import (
@@ -204,57 +201,21 @@ def website_relation_joined():
 @hooks.hook('nrpe-external-master-relation-joined',
             'nrpe-external-master-relation-changed')
 def update_nrpe_config():
-    # Find out if nrpe set nagios_hostname
-    hostname = None
-    host_context = None
-    for rel in relations_of_type('nrpe-external-master'):
-        if 'nagios_hostname' in rel:
-            hostname = rel['nagios_hostname']
-            host_context = rel['nagios_host_context']
-            break
-    nrpe_compat = nrpe.NRPE(hostname=hostname)
-
-    if host_context:
-        current_unit = "%s:%s" % (host_context, local_unit())
-    else:
-        current_unit = local_unit()
-
-    conf = nrpe_compat.config
+    # python-dbus is used by check_upstart_job
+    apt_install('python-dbus')
+    hostname = nrpe.get_nagios_hostname()
+    current_unit = nrpe.get_nagios_unit_name()
+    nrpe_setup = nrpe.NRPE(hostname=hostname)
+    nrpe.add_init_service_checks(nrpe_setup, services(), current_unit)
+    conf = nrpe_setup.config
     check_http_params = conf.get('nagios_check_http_params')
     if check_http_params:
-        nrpe_compat.add_check(
+        nrpe_setup.add_check(
             shortname='vhost',
             description='Check Virtual Host {%s}' % current_unit,
             check_cmd='check_http %s' % check_http_params
         )
-
-    services_to_monitor = services()
-    for service in services_to_monitor:
-        upstart_init = '/etc/init/%s.conf' % service
-        sysv_init = '/etc/init.d/%s' % service
-
-        if os.path.exists(upstart_init):
-            nrpe_compat.add_check(
-                shortname=service,
-                description='process check {%s}' % current_unit,
-                check_cmd='check_upstart_job %s' % check_http_params
-                )
-        elif os.path.exists(sysv_init):
-            cronpath = '/etc/cron.d/nagios-service-check-%s' % service
-            cron_template = '*/5 * * * * root \
-/usr/local/lib/nagios/plugins/check_exit_status.pl -s /etc/init.d/%s \
-status > /var/lib/nagios/service-check-%s.txt\n' % (service, service)
-            f = open(cronpath, 'w')
-            f.write(cron_template)
-            f.close()
-            nrpe_compat.add_check(
-                shortname=service,
-                description='process check {%s}' % current_unit,
-                check_cmd='check_status_file.py -f \
-/var/lib/nagios/service-check-%s.txt' % service,
-                )
-
-    nrpe_compat.write()
+    nrpe_setup.write()
 
 
 def main():
