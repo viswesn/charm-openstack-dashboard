@@ -123,3 +123,18 @@ options:
           In order for this charm to function correctly, the privacy extension
           must be disabled and a non-temporary address must be
           configured/available on your network interface.
+    nagios_context:
+      default: "juju"
+      type: string
+      description: >
+        Used by the nrpe-external-master subordinate charm.
+        A string that will be prepended to instance name to set the host name
+        in nagios. So for instance the hostname would be something like:
+            juju-postgresql-0
+        If you're running multiple environments with the same services in them
+        this allows you to differentiate between them.
+    nagios_check_http_params:
+      default: "-H localhost -I 127.0.0.1 -u '/' -e 200,301,302"
+      type: string
+      description: The parameters to pass to the nrpe plugin check_http.
+

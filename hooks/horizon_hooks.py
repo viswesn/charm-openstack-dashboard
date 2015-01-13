@@ -28,6 +28,7 @@ from charmhelpers.contrib.openstack.utils import (
 from horizon_utils import (
     PACKAGES, register_configs,
     restart_map,
+    services,
     LOCAL_SETTINGS, HAPROXY_CONF,
     enable_ssl,
     do_openstack_upgrade,
@@ -42,6 +43,7 @@ from charmhelpers.contrib.network.ip import (
 from charmhelpers.contrib.hahelpers.apache import install_ca_cert
 from charmhelpers.contrib.hahelpers.cluster import get_hacluster_config
 from charmhelpers.payload.execd import execd_preinstall
+from charmhelpers.contrib.charmsupport import nrpe
 from base64 import b64decode
 
 hooks = Hooks()
@@ -50,6 +52,7 @@ CONFIGS = register_configs()
 
 @hooks.hook('install')
 def install():
+    execd_preinstall()
     configure_installation_source(config('openstack-origin'))
     apt_update(fatal=True)
     packages = PACKAGES[:]
@@ -63,6 +66,7 @@ def install():
 def upgrade_charm():
     execd_preinstall()
     apt_install(filter_installed_packages(PACKAGES), fatal=True)
+    update_nrpe_config()
     CONFIGS.write_all()
 
 
@@ -74,6 +78,11 @@ def config_changed():
         localhost = 'ip6-localhost'
     else:
         localhost = 'localhost'
+
+    if (os_release('openstack-dashboard') == 'icehouse' and
+            config('offline-compression') in ['no', 'False']):
+        apt_install(filter_installed_packages(['python-lesscpy']),
+                    fatal=True)
 
     # Ensure default role changes are propagated to keystone
     for relid in relation_ids('identity-service'):
@@ -93,6 +102,7 @@ def config_changed():
         'OPENSTACK_PORT_HORIZON': 70
     }
     save_script_rc(**env_vars)
+    update_nrpe_config()
     CONFIGS.write_all()
     open_port(80)
     open_port(443)
@@ -190,6 +200,26 @@ def ha_relation_joined():
 def website_relation_joined():
     relation_set(port=70,
                  hostname=unit_get('private-address'))
+
+
+@hooks.hook('nrpe-external-master-relation-joined',
+            'nrpe-external-master-relation-changed')
+def update_nrpe_config():
+    # python-dbus is used by check_upstart_job
+    apt_install('python-dbus')
+    hostname = nrpe.get_nagios_hostname()
+    current_unit = nrpe.get_nagios_unit_name()
+    nrpe_setup = nrpe.NRPE(hostname=hostname)
+    nrpe.add_init_service_checks(nrpe_setup, services(), current_unit)
+    conf = nrpe_setup.config
+    check_http_params = conf.get('nagios_check_http_params')
+    if check_http_params:
+        nrpe_setup.add_check(
+            shortname='vhost',
+            description='Check Virtual Host {%s}' % current_unit,
+            check_cmd='check_http %s' % check_http_params
+        )
+    nrpe_setup.write()
 
 
 def main():
