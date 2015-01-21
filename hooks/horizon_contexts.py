@@ -38,10 +38,8 @@ class HorizonHAProxyContext(HAProxyContext):
         l_unit = local_unit().replace('/', '-')
         if config('prefer-ipv6'):
             cluster_hosts[l_unit] = get_ipv6_addr(exc_list=[config('vip')])[0]
-            binding_addr = "::"
         else:
             cluster_hosts[l_unit] = unit_get('private-address')
-            binding_addr = "0.0.0.0"
 
         for rid in relation_ids('cluster'):
             for unit in related_units(rid):
@@ -59,7 +57,7 @@ class HorizonHAProxyContext(HAProxyContext):
                 'dash_insecure': [80, 70],
                 'dash_secure': [443, 433]
             },
-            'binding_addr': binding_addr
+            'prefer_ipv6': config('prefer-ipv6')
         }
         return ctxt
 
