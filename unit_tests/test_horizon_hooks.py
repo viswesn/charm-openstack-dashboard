@@ -33,6 +33,7 @@ TO_PATCH = [
     'get_iface_for_address',
     'get_netmask_for_address',
     'update_nrpe_config',
+    'lsb_release',
 ]
 
 
@@ -59,6 +60,19 @@ class TestHorizonHooks(CharmTestCase):
         self.configure_installation_source.assert_called_with('distro')
         self.apt_update.assert_called_with(fatal=True)
         self.apt_install.assert_called_with(['foo', 'bar'], fatal=True)
+
+    def test_install_hook_precise(self):
+        self.filter_installed_packages.return_value = ['foo', 'bar']
+        self.os_release.return_value = 'icehouse'
+        self.lsb_release.return_value = {'DISTRIB_CODENAME': 'precise'}
+        self._call_hook('install')
+        self.configure_installation_source.assert_called_with('distro')
+        self.apt_update.assert_called_with(fatal=True)
+        calls = [
+            call('python-six', fatal=True),
+            call(['foo', 'bar'], fatal=True),
+        ]
+        self.apt_install.assert_has_calls(calls)
 
     def test_install_hook_icehouse_pkgs(self):
         self.os_release.return_value = 'icehouse'
