@@ -69,8 +69,7 @@ class TestHorizonHooks(CharmTestCase):
         self.configure_installation_source.assert_called_with('distro')
         self.apt_update.assert_called_with(fatal=True)
         calls = [
-            call('python-six',
-                 options=['-t', 'precise-updates/cloud-tools'], fatal=True),
+            call('python-six', fatal=True),
             call(['foo', 'bar'], fatal=True),
         ]
         self.apt_install.assert_has_calls(calls)
