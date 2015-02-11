@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-"""Amulet tests on a basic quantum-gateway deployment on trusty-icehouse."""
+"""Amulet tests on a basic openstack-dashboard deployment on trusty-icehouse."""
 
 from basic_deployment import OpenstackDashboardBasicDeployment
 
