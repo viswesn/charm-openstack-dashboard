@@ -17,6 +17,7 @@ from charmhelpers.fetch import (
     filter_installed_packages,
 )
 from charmhelpers.core.host import (
+    lsb_release,
     restart_on_change
 )
 from charmhelpers.contrib.openstack.utils import (
@@ -58,6 +59,11 @@ def install():
     packages = PACKAGES[:]
     if os_release('openstack-dashboard') < 'icehouse':
         packages += ['nodejs', 'node-less']
+    if lsb_release()['DISTRIB_CODENAME'] == 'precise':
+        # Explicitly upgrade python-six Bug#1420708
+        apt_install('python-six',
+                    options=['-t', 'precise-updates/cloud-tools'],
+                    fatal=True)
     apt_install(filter_installed_packages(packages), fatal=True)
 
 
