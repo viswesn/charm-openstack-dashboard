@@ -61,9 +61,7 @@ def install():
         packages += ['nodejs', 'node-less']
     if lsb_release()['DISTRIB_CODENAME'] == 'precise':
         # Explicitly upgrade python-six Bug#1420708
-        apt_install('python-six',
-                    options=['-t', 'precise-updates/cloud-tools'],
-                    fatal=True)
+        apt_install('python-six', fatal=True)
     apt_install(filter_installed_packages(packages), fatal=True)
 
 
