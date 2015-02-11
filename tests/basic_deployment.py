@@ -2,6 +2,7 @@
 
 import amulet
 import time
+import urllib2
 
 from charmhelpers.contrib.openstack.amulet.deployment import (
     OpenStackAmuletDeployment
@@ -101,3 +102,14 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
                      if expected[key] != value:
                          msg="Mismatch %s != %s" % (expected[key], value)
                          amulet.raise_status(amulet.FAIL, msg=msg)
+
+    def test_connection(self):
+        unit = self.openstack_dashboard_sentry
+        dashboard_relation = unit.relation('identity-service',
+                                           'keystone:identity-service')
+        dashboard_ip = dashboard_relation['private-address']
+        response = urllib2.urlopen('http://%s/horizon' % (dashboard_ip))
+        html = response.read()
+        if 'OpenStack Dashboard' not in html:
+            msg="Dashboard frontpage check failed"
+            amulet.raise_status(amulet.FAIL, msg=msg)
