@@ -19,7 +19,7 @@ u = OpenStackAmuletUtils(ERROR)
 
 
 class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
-    """Amulet tests on a basic quantum-gateway deployment."""
+    """Amulet tests on a basic openstack-dashboard deployment."""
 
     def __init__(self, series, openstack=None, source=None, stable=False):
         """Deploy the entire test environment."""
@@ -34,7 +34,7 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
     def _add_services(self):
         """Add services
 
-           Add the services that we're testing, where quantum-gateway is local,
+           Add the services that we're testing, where openstack-dashboard is local,
            and the rest of the service are from lp branches that are
            compatible with the local charm (e.g. stable or next).
            """
