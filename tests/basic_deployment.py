@@ -105,13 +105,15 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
         self.crude_py_parse(file_contents, expected)
 
     def test_router_settings(self):
-        unit = self.openstack_dashboard_sentry
-        conf = '/usr/share/openstack-dashboard/openstack_dashboard/enabled/_40_router.py'
-        file_contents = unit.file_contents(conf)
-        expected = {
-            'DISABLED': "True",
-        }
-        self.crude_py_parse(file_contents, expected)
+        if self.openstack > "icehouse":
+            unit = self.openstack_dashboard_sentry
+            conf = ('/usr/share/openstack-dashboard/openstack_dashboard/'
+                    'enabled/_40_router.py')
+            file_contents = unit.file_contents(conf)
+            expected = {
+                'DISABLED': "True",
+            }
+            self.crude_py_parse(file_contents, expected)
 
     def test_connection(self):
         unit = self.openstack_dashboard_sentry

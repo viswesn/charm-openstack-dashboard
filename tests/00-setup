@@ -9,4 +9,3 @@ sudo apt-get install --yes python-amulet \
                            python-keystoneclient \
                            python-novaclient \
                            python-glanceclient
-sleep 20
