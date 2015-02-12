@@ -218,7 +218,8 @@ class TestHorizonContexts(CharmTestCase):
             self.assertEquals(horizon_contexts.HorizonHAProxyContext()(),
                               {'units': {'openstack-dashboard-0': '10.5.0.1'},
                                'service_ports': {'dash_insecure': [80, 70],
-                                                 'dash_secure': [443, 433]}})
+                                                 'dash_secure': [443, 433]},
+                               'prefer_ipv6': False})
             _open.assert_called_with('/etc/default/haproxy', 'w')
             _file.write.assert_called()
 
@@ -236,7 +237,8 @@ class TestHorizonContexts(CharmTestCase):
                                          'openstack-dashboard-1': '10.5.0.2',
                                          'openstack-dashboard-2': '10.5.0.3'},
                                'service_ports': {'dash_insecure': [80, 70],
-                                                 'dash_secure': [443, 433]}})
+                                                 'dash_secure': [443, 433]},
+                               'prefer_ipv6': False})
             _open.assert_called_with('/etc/default/haproxy', 'w')
             _file.write.assert_called()
 
