@@ -56,7 +56,8 @@ class HorizonHAProxyContext(HAProxyContext):
             'service_ports': {
                 'dash_insecure': [80, 70],
                 'dash_secure': [443, 433]
-            }
+            },
+            'prefer_ipv6': config('prefer-ipv6')
         }
         return ctxt
 
