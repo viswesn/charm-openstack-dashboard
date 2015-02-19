@@ -137,4 +137,9 @@ options:
       default: "-H localhost -I 127.0.0.1 -u '/' -e 200,301,302"
       type: string
       description: The parameters to pass to the nrpe plugin check_http.
-
+    nagios_servicegroups:
+      default: ""
+      type: string
+      description: |
+        A comma-separated list of nagios servicegroups.
+        If left empty, the nagios_context will be used as the servicegroup
