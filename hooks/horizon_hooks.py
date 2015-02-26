@@ -214,7 +214,9 @@ def update_nrpe_config():
     hostname = nrpe.get_nagios_hostname()
     current_unit = nrpe.get_nagios_unit_name()
     nrpe_setup = nrpe.NRPE(hostname=hostname)
+    nrpe.copy_nrpe_checks()
     nrpe.add_init_service_checks(nrpe_setup, services(), current_unit)
+    nrpe.add_haproxy_checks(nrpe_setup, current_unit)
     conf = nrpe_setup.config
     check_http_params = conf.get('nagios_check_http_params')
     if check_http_params:
