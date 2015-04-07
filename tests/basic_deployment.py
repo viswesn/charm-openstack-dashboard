@@ -3,6 +3,7 @@
 import amulet
 import time
 import urllib2
+import yaml
 
 from charmhelpers.contrib.openstack.amulet.deployment import (
     OpenStackAmuletDeployment
@@ -21,10 +22,12 @@ u = OpenStackAmuletUtils(ERROR)
 class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
     """Amulet tests on a basic openstack-dashboard deployment."""
 
-    def __init__(self, series, openstack=None, source=None, stable=False):
+    def __init__(self, series, openstack=None, source=None, git=False,
+                 stable=False):
         """Deploy the entire test environment."""
         super(OpenstackDashboardBasicDeployment, self).__init__(series, openstack,
                                                             source, stable)
+        self.git = git
         self._add_services()
         self._add_relations()
         self._configure_services()
@@ -39,7 +42,7 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
            compatible with the local charm (e.g. stable or next).
            """
         this_service = {'name': 'openstack-dashboard'}
-        other_services = [{'name': 'keystone'}]
+        other_services = [{'name': 'keystone'}, {'name': 'mysql'}]
         super(OpenstackDashboardBasicDeployment, self)._add_services(this_service,
                                                                  other_services)
 
@@ -47,14 +50,36 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
         """Add all of the relations for the services."""
         relations = {
           'openstack-dashboard:identity-service': 'keystone:identity-service',
+          'keystone:shared-db': 'mysql:shared-db',
         }
         super(OpenstackDashboardBasicDeployment, self)._add_relations(relations)
 
     def _configure_services(self):
         """Configure all of the services."""
+        horizon_config = {}
+        if self.git:
+            branch = 'stable/' + self._get_openstack_release_string()
+            openstack_origin_git = {
+                'repositories': [
+                    {'name': 'requirements',
+                     'repository': 'git://git.openstack.org/openstack/requirements',
+                     'branch': branch},
+                    {'name': 'horizon',
+                     'repository': 'git://git.openstack.org/openstack/horizon',
+                     'branch': branch},
+                ],
+                'directory': '/mnt/openstack-git',
+                'http_proxy': 'http://squid.internal:3128',
+                'https_proxy': 'https://squid.internal:3128',
+            }
+            horizon_config['openstack-origin-git'] = yaml.dump(openstack_origin_git)
+
         keystone_config = {'admin-password': 'openstack',
                            'admin-token': 'ubuntutesting'}
-        configs = {'keystone': keystone_config}
+        mysql_config = {'dataset-size': '50%'}
+        configs = {'openstack-dashboard': horizon_config,
+                   'mysql': mysql_config,
+                   'keystone': keystone_config}
         super(OpenstackDashboardBasicDeployment, self)._configure_services(configs)
 
     def _initialize_tests(self):
