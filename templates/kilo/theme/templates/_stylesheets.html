@@ -1,0 +1,9 @@
+{% load compress %}
+
+{% compress css %}
+<link href='{{ STATIC_URL }}dashboard/scss/horizon.scss' type='text/scss' media='screen' rel='stylesheet' />
+<link href='{{ STATIC_URL }}ubuntu/css/ubuntu.scss' type='text/scss' media='screen' rel='stylesheet' />
+{% endcompress %}
+
+
+<link rel="shortcut icon" href="{{ STATIC_URL }}ubuntu/img/favicon-ubuntu.ico"/>

@@ -1,0 +1,2 @@
+git-reinstall:
+  description: Reinstall openstack-dashboard from the openstack-origin-git repositories.
