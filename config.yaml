@@ -79,6 +79,11 @@ options:
         default:
         description: |
           Base64 encoded SSL key to use with certificate specified as ssl_cert.
+    ssl_ca:
+        type: string
+        default:
+        description: |
+          Base64 encoded certificate authority.
     offline-compression:
         type: string
         default: "yes"
