@@ -142,7 +142,9 @@ class ApacheContext(OSContextGenerator):
 class ApacheSSLContext(OSContextGenerator):
     def __call__(self):
         ''' Grab cert and key from configuration for SSL config '''
-        install_ca_cert(get_ca_cert())
+        ca_cert = get_ca_cert()
+        if ca_cert:
+            install_ca_cert(b64decode(ca_cert))
         (ssl_cert, ssl_key) = get_cert()
         if None not in [ssl_cert, ssl_key]:
             with open('/etc/ssl/certs/dashboard.cert', 'w') as cert_out:
