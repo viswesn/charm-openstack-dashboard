@@ -39,22 +39,27 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
            compatible with the local charm (e.g. stable or next).
            """
         this_service = {'name': 'openstack-dashboard'}
-        other_services = [{'name': 'keystone'}]
+        other_services = [{'name': 'keystone'}, {'name': 'mysql'}]
         super(OpenstackDashboardBasicDeployment, self)._add_services(this_service,
-                                                                 other_services)
+                                                                     other_services)
 
     def _add_relations(self):
         """Add all of the relations for the services."""
         relations = {
           'openstack-dashboard:identity-service': 'keystone:identity-service',
+          'keystone:shared-db': 'mysql:shared-db',
         }
         super(OpenstackDashboardBasicDeployment, self)._add_relations(relations)
 
     def _configure_services(self):
         """Configure all of the services."""
+        horizon_config = {}
         keystone_config = {'admin-password': 'openstack',
                            'admin-token': 'ubuntutesting'}
-        configs = {'keystone': keystone_config}
+        mysql_config = {'dataset-size': '50%'}
+        configs = {'openstack-dashboard': horizon_config,
+                   'mysql': mysql_config,
+                   'keystone': keystone_config}
         super(OpenstackDashboardBasicDeployment, self)._configure_services(configs)
 
     def _initialize_tests(self):
