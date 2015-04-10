@@ -50,6 +50,7 @@ class TestHorizonContexts(CharmTestCase):
         self.assertEquals(horizon_contexts.ApacheContext()(),
                           {'http_port': 70, 'https_port': 433})
 
+    @patch.object(horizon_contexts, 'get_ca_cert', lambda: None)
     @patch('os.chmod')
     def test_ApacheSSLContext_enabled(self, _chmod):
         self.get_cert.return_value = ('cert', 'key')
@@ -70,6 +71,7 @@ class TestHorizonContexts(CharmTestCase):
         # Security check on key permissions
         _chmod.assert_called_with('/etc/ssl/private/dashboard.key', 0o600)
 
+    @patch.object(horizon_contexts, 'get_ca_cert', lambda: None)
     def test_ApacheSSLContext_disabled(self):
         self.get_cert.return_value = (None, None)
         self.assertEquals(horizon_contexts.ApacheSSLContext()(),

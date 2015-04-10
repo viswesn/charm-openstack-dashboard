@@ -14,7 +14,9 @@ from charmhelpers.contrib.openstack.context import (
     context_complete
 )
 from charmhelpers.contrib.hahelpers.apache import (
-    get_cert
+    get_ca_cert,
+    get_cert,
+    install_ca_cert,
 )
 from charmhelpers.contrib.network.ip import (
     get_ipv6_addr,
@@ -140,6 +142,9 @@ class ApacheContext(OSContextGenerator):
 class ApacheSSLContext(OSContextGenerator):
     def __call__(self):
         ''' Grab cert and key from configuration for SSL config '''
+        ca_cert = get_ca_cert()
+        if ca_cert:
+            install_ca_cert(b64decode(ca_cert))
         (ssl_cert, ssl_key) = get_cert()
         if None not in [ssl_cert, ssl_key]:
             with open('/etc/ssl/certs/dashboard.cert', 'w') as cert_out:
