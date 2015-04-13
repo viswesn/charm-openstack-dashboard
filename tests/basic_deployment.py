@@ -17,7 +17,7 @@ from charmhelpers.contrib.openstack.amulet.utils import (
 )
 
 # Use DEBUG to turn on debug logging
-u = OpenStackAmuletUtils(ERROR)
+u = OpenStackAmuletUtils(DEBUG)
 
 
 class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
