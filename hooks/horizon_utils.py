@@ -297,7 +297,7 @@ def git_post_install(projects_yaml):
     """Perform horizon post-install setup."""
     src_dir = git_src_dir(projects_yaml, 'horizon')
     release = os_release('openstack-dashboard')
-    templates_dir = os.path.join(charm_dir(), 'templates')
+    templates_dir = os.path.join(charm_dir(), 'templates/git')
     templates_rel_dir = os.path.join(templates_dir, release)
     theme_dir = '/usr/share/openstack-dashboard-ubuntu-theme'
     copy_files = {
