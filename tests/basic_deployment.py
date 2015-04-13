@@ -45,7 +45,7 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
         this_service = {'name': 'openstack-dashboard'}
         other_services = [{'name': 'keystone'}, {'name': 'mysql'}]
         super(OpenstackDashboardBasicDeployment, self)._add_services(this_service,
-                                                                 other_services)
+                                                                     other_services)
 
     def _add_relations(self):
         """Add all of the relations for the services."""
