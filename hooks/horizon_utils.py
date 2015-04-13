@@ -296,10 +296,7 @@ def git_pre_install():
 def git_post_install(projects_yaml):
     """Perform horizon post-install setup."""
     src_dir = git_src_dir(projects_yaml, 'horizon')
-    release = os_release('openstack-dashboard')
     templates_dir = os.path.join(charm_dir(), 'templates/git')
-    templates_rel_dir = os.path.join(templates_dir, release)
-    theme_dir = '/usr/share/openstack-dashboard-ubuntu-theme'
     copy_files = {
         'manage': {
             'src': os.path.join(src_dir, 'manage.py'),
@@ -318,10 +315,6 @@ def git_post_install(projects_yaml):
             'src': os.path.join(templates_dir, 'dashboard.conf'),
             'dest': '/etc/apache2/conf-available/openstack-dashboard.conf',
         },
-        'ubuntu_theme': {
-            'src': os.path.join(templates_rel_dir, 'theme/ubuntu_theme.py'),
-            'dest': '/etc/openstack-dashboard/ubuntu_theme.py',
-        },
     }
 
     for name, files in copy_files.iteritems():
@@ -334,18 +327,6 @@ def git_post_install(projects_yaml):
             'src': os.path.join(src_dir, 'openstack_dashboard'),
             'dest': '/usr/share/openstack-dashboard/openstack_dashboard',
         },
-        'ubuntu_css': {
-            'src': os.path.join(templates_rel_dir, 'theme/css'),
-            'dest': os.path.join(theme_dir, 'static/ubuntu/css'),
-        },
-        'ubuntu_img': {
-            'src': os.path.join(templates_rel_dir, 'theme/img'),
-            'dest': os.path.join(theme_dir, 'static/ubuntu/img'),
-        },
-        'templates': {
-            'src': os.path.join(templates_rel_dir, 'theme/templates'),
-            'dest': os.path.join(theme_dir, 'templates'),
-        },
     }
 
     for name, dirs in copy_trees.iteritems():
@@ -357,12 +338,8 @@ def git_post_install(projects_yaml):
     symlinks = [
         {'src': '/usr/share/openstack-dashboard/openstack_dashboard/static',
          'link': '/usr/share/openstack-dashboard/static'},
-        {'src': '/etc/openstack-dashboard/ubuntu_theme.py',
-         'link': os.path.join(share_dir, 'local/ubuntu_theme.py')},
         {'src': '/usr/bin/lessc',
          'link': '/usr/share/openstack-dashboard/bin/less/lessc'},
-        {'src': '/usr/share/openstack-dashboard-ubuntu-theme/static/ubuntu',
-         'link': os.path.join(share_dir, 'static/ubuntu')},
         {'src': '/etc/openstack-dashboard/local_settings.py',
          'link': os.path.join(share_dir, 'local/local_settings.py')},
         {'src':
