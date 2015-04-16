@@ -21,18 +21,23 @@ from charmhelpers.core.host import (
     restart_on_change
 )
 from charmhelpers.contrib.openstack.utils import (
+    config_value_changed,
     configure_installation_source,
+    git_install_requested,
     openstack_upgrade_available,
     os_release,
     save_script_rc
 )
 from horizon_utils import (
-    PACKAGES, register_configs,
+    determine_packages,
+    register_configs,
     restart_map,
     services,
     LOCAL_SETTINGS, HAPROXY_CONF,
     enable_ssl,
     do_openstack_upgrade,
+    git_install,
+    git_post_install_late,
     setup_ipv6
 )
 from charmhelpers.contrib.network.ip import (
@@ -55,8 +60,9 @@ CONFIGS = register_configs()
 def install():
     execd_preinstall()
     configure_installation_source(config('openstack-origin'))
+
     apt_update(fatal=True)
-    packages = PACKAGES[:]
+    packages = determine_packages()
     if os_release('openstack-dashboard') < 'icehouse':
         packages += ['nodejs', 'node-less']
     if lsb_release()['DISTRIB_CODENAME'] == 'precise':
@@ -64,12 +70,14 @@ def install():
         apt_install('python-six', fatal=True)
     apt_install(filter_installed_packages(packages), fatal=True)
 
+    git_install(config('openstack-origin-git'))
+
 
 @hooks.hook('upgrade-charm')
 @restart_on_change(restart_map())
 def upgrade_charm():
     execd_preinstall()
-    apt_install(filter_installed_packages(PACKAGES), fatal=True)
+    apt_install(filter_installed_packages(determine_packages()), fatal=True)
     update_nrpe_config()
     CONFIGS.write_all()
 
@@ -92,8 +100,13 @@ def config_changed():
     for relid in relation_ids('identity-service'):
         keystone_joined(relid)
     enable_ssl()
-    if openstack_upgrade_available('openstack-dashboard'):
-        do_openstack_upgrade(configs=CONFIGS)
+
+    if git_install_requested():
+        if config_value_changed('openstack-origin-git'):
+            git_install(config('openstack-origin-git'))
+    else:
+        if openstack_upgrade_available('openstack-dashboard'):
+            do_openstack_upgrade(configs=CONFIGS)
 
     env_vars = {
         'OPENSTACK_URL_HORIZON':
@@ -110,6 +123,9 @@ def config_changed():
     CONFIGS.write_all()
     open_port(80)
     open_port(443)
+
+    if git_install_requested():
+        git_post_install_late()
 
 
 @hooks.hook('identity-service-relation-joined')
