@@ -1,4 +1,5 @@
 from mock import MagicMock, patch, call
+import yaml
 import horizon_utils as utils
 _register_configs = utils.register_configs
 utils.register_configs = MagicMock()
@@ -32,6 +33,8 @@ TO_PATCH = [
     'os_release',
     'get_iface_for_address',
     'get_netmask_for_address',
+    'git_install',
+    'git_post_install_late',
     'update_nrpe_config',
     'lsb_release',
 ]
@@ -53,7 +56,9 @@ class TestHorizonHooks(CharmTestCase):
         hooks.hooks.execute([
             'hooks/{}'.format(hookname)])
 
-    def test_install_hook(self):
+    @patch.object(utils, 'git_install_requested')
+    def test_install_hook(self, _git_requested):
+        _git_requested.return_value = False
         self.filter_installed_packages.return_value = ['foo', 'bar']
         self.os_release.return_value = 'icehouse'
         self._call_hook('install')
@@ -61,7 +66,9 @@ class TestHorizonHooks(CharmTestCase):
         self.apt_update.assert_called_with(fatal=True)
         self.apt_install.assert_called_with(['foo', 'bar'], fatal=True)
 
-    def test_install_hook_precise(self):
+    @patch.object(utils, 'git_install_requested')
+    def test_install_hook_precise(self, _git_requested):
+        _git_requested.return_value = False
         self.filter_installed_packages.return_value = ['foo', 'bar']
         self.os_release.return_value = 'icehouse'
         self.lsb_release.return_value = {'DISTRIB_CODENAME': 'precise'}
@@ -74,7 +81,9 @@ class TestHorizonHooks(CharmTestCase):
         ]
         self.apt_install.assert_has_calls(calls)
 
-    def test_install_hook_icehouse_pkgs(self):
+    @patch.object(utils, 'git_install_requested')
+    def test_install_hook_icehouse_pkgs(self, _git_requested):
+        _git_requested.return_value = False
         self.os_release.return_value = 'icehouse'
         self._call_hook('install')
         for pkg in ['nodejs', 'node-less']:
@@ -83,7 +92,9 @@ class TestHorizonHooks(CharmTestCase):
             )
         self.apt_install.assert_called()
 
-    def test_install_hook_pre_icehouse_pkgs(self):
+    @patch.object(utils, 'git_install_requested')
+    def test_install_hook_pre_icehouse_pkgs(self, _git_requested):
+        _git_requested.return_value = False
         self.os_release.return_value = 'grizzly'
         self._call_hook('install')
         for pkg in ['nodejs', 'node-less']:
@@ -92,9 +103,37 @@ class TestHorizonHooks(CharmTestCase):
             )
         self.apt_install.assert_called()
 
+    @patch.object(utils, 'git_install_requested')
+    def test_install_hook_git(self, _git_requested):
+        _git_requested.return_value = True
+        self.filter_installed_packages.return_value = ['foo', 'bar']
+        repo = 'cloud:trusty-juno'
+        openstack_origin_git = {
+            'repositories': [
+                {'name': 'requirements',
+                 'repository': 'git://git.openstack.org/openstack/requirements',  # noqa
+                 'branch': 'stable/juno'},
+                {'name': 'horizon',
+                 'repository': 'git://git.openstack.org/openstack/horizon',
+                 'branch': 'stable/juno'}
+            ],
+            'directory': '/mnt/openstack-git',
+        }
+        projects_yaml = yaml.dump(openstack_origin_git)
+        self.test_config.set('openstack-origin', repo)
+        self.test_config.set('openstack-origin-git', projects_yaml)
+        self._call_hook('install')
+        self.assertTrue(self.execd_preinstall.called)
+        self.configure_installation_source.assert_called_with(repo)
+        self.apt_update.assert_called_with(fatal=True)
+        self.apt_install.assert_called_with(['foo', 'bar'], fatal=True)
+        self.git_install.assert_called_with(projects_yaml)
+
     @patch('charmhelpers.core.host.file_hash')
     @patch('charmhelpers.core.host.service')
-    def test_upgrade_charm_hook(self, _service, _hash):
+    @patch.object(utils, 'git_install_requested')
+    def test_upgrade_charm_hook(self, _git_requested, _service, _hash):
+        _git_requested.return_value = False
         side_effects = []
         [side_effects.append(None) for f in RESTART_MAP.keys()]
         [side_effects.append('bar') for f in RESTART_MAP.keys()]
@@ -175,7 +214,9 @@ class TestHorizonHooks(CharmTestCase):
                           'ha-relation-joined')
 
     @patch('horizon_hooks.keystone_joined')
-    def test_config_changed_no_upgrade(self, _joined):
+    @patch.object(hooks, 'git_install_requested')
+    def test_config_changed_no_upgrade(self, _git_requested, _joined):
+        _git_requested.return_value = False
         self.relation_ids.return_value = ['identity/0']
         self.openstack_upgrade_available.return_value = False
         self._call_hook('config-changed')
@@ -189,12 +230,38 @@ class TestHorizonHooks(CharmTestCase):
         self.CONFIGS.write_all.assert_called()
         self.open_port.assert_has_calls([call(80), call(443)])
 
-    def test_config_changed_do_upgrade(self):
+    @patch.object(hooks, 'git_install_requested')
+    def test_config_changed_do_upgrade(self, _git_requested):
+        _git_requested.return_value = False
         self.relation_ids.return_value = []
         self.test_config.set('openstack-origin', 'cloud:precise-grizzly')
         self.openstack_upgrade_available.return_value = True
         self._call_hook('config-changed')
         self.do_openstack_upgrade.assert_called()
+
+    @patch.object(hooks, 'git_install_requested')
+    @patch.object(hooks, 'config_value_changed')
+    def test_config_changed_git_updated(self, _config_val_changed,
+                                        _git_requested):
+        _git_requested.return_value = True
+        repo = 'cloud:trusty-juno'
+        openstack_origin_git = {
+            'repositories': [
+                {'name': 'requirements',
+                 'repository': 'git://git.openstack.org/openstack/requirements',  # noqa
+                 'branch': 'stable/juno'},
+                {'name': 'horizon',
+                 'repository': 'git://git.openstack.org/openstack/horizon',
+                 'branch': 'stable/juno'}
+            ],
+            'directory': '/mnt/openstack-git',
+        }
+        projects_yaml = yaml.dump(openstack_origin_git)
+        self.test_config.set('openstack-origin', repo)
+        self.test_config.set('openstack-origin-git', projects_yaml)
+        self._call_hook('config-changed')
+        self.git_install.assert_called_with(projects_yaml)
+        self.assertFalse(self.do_openstack_upgrade.called)
 
     def test_keystone_joined_in_relation(self):
         self._call_hook('identity-service-relation-joined')
