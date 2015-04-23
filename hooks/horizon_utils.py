@@ -53,7 +53,6 @@ BASE_PACKAGES = [
 BASE_GIT_PACKAGES = [
     'apache2',
     'libapache2-mod-wsgi',
-    'libpcre3-dev',
     'libxml2-dev',
     'libxslt1-dev',
     'python-dev',
