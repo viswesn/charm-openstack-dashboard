@@ -17,6 +17,10 @@ from charmhelpers.contrib.openstack.utils import (
     git_clone_and_install,
     os_release,
     git_src_dir,
+    git_http_proxy,
+)
+from charmhelpers.contrib.python.packages import (
+    pip_install,
 )
 from charmhelpers.core.hookenv import (
     charm_dir,
@@ -359,6 +363,11 @@ def git_post_install(projects_yaml):
     os.chmod('/var/lib/openstack-dashboard', 0o750)
     os.chmod('/usr/share/openstack-dashboard/manage.py', 0o755),
 
+    http_proxy = git_http_proxy(projects_yaml)
+    if http_proxy:
+        pip_install('python-memcached', proxy=http_proxy, venv=True)
+    else:
+        pip_install('python-memcached', venv=True)
     python = os.path.join(charm_dir(), 'venv/bin/python')
     subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
                            'collectstatic', '--noinput'])
