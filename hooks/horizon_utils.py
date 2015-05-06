@@ -343,8 +343,8 @@ def git_post_install(projects_yaml):
          'link': '/usr/share/openstack-dashboard/bin/less/lessc'},
         {'src': '/etc/openstack-dashboard/local_settings.py',
          'link': os.path.join(share_dir, 'local/local_settings.py')},
-        {'src':
-            '/usr/local/lib/python2.7/dist-packages/horizon/static/horizon/',
+        {'src': os.path.join(charm_dir(),
+             'venv/local/lib/python2.7/site-packages/horizon/static/horizon/'),
          'link': os.path.join(share_dir, 'static/horizon')},
     ]
 
@@ -356,9 +356,10 @@ def git_post_install(projects_yaml):
     os.chmod('/var/lib/openstack-dashboard', 0o750)
     os.chmod('/usr/share/openstack-dashboard/manage.py', 0o755),
 
-    subprocess.check_call(['/usr/share/openstack-dashboard/manage.py',
+    python = os.path.join(charm_dir(), 'venv/bin/python')
+    subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
                            'collectstatic', '--noinput'])
-    subprocess.check_call(['/usr/share/openstack-dashboard/manage.py',
+    subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
                            'compress', '--force'])
 
     uid = pwd.getpwnam('horizon').pw_uid
@@ -382,7 +383,8 @@ def git_post_install(projects_yaml):
 
 def git_post_install_late():
     """Perform horizon post-install setup."""
-    subprocess.check_call(['/usr/share/openstack-dashboard/manage.py',
+    python = os.path.join(charm_dir(), 'venv/bin/python')
+    subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
                            'collectstatic', '--noinput'])
-    subprocess.check_call(['/usr/share/openstack-dashboard/manage.py',
+    subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
                            'compress', '--force'])
