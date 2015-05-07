@@ -368,7 +368,7 @@ def git_post_install(projects_yaml):
         pip_install('python-memcached', proxy=http_proxy, venv=True)
     else:
         pip_install('python-memcached', venv=True)
-    python = os.path.join(os.path.join(charm_dir(), 'venv/bin/python')
+    python = os.path.join(charm_dir(), 'venv/bin/python')
     subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
                            'collectstatic', '--noinput'])
     subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
@@ -395,7 +395,7 @@ def git_post_install(projects_yaml):
 
 def git_post_install_late():
     """Perform horizon post-install setup."""
-    python = os.path.join(os.path.join(charm_dir(), 'venv/bin/python')
+    python = os.path.join(charm_dir(), 'venv/bin/python')
     subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
                            'collectstatic', '--noinput'])
     subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
