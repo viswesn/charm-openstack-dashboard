@@ -21,7 +21,6 @@ from charmhelpers.contrib.openstack.utils import (
 )
 from charmhelpers.contrib.python.packages import (
     pip_install,
-    pip_get_virtualenv_path,
 )
 from charmhelpers.core.hookenv import (
     charm_dir,
@@ -351,8 +350,8 @@ def git_post_install(projects_yaml):
          'link': '/usr/share/openstack-dashboard/bin/less/lessc'},
         {'src': '/etc/openstack-dashboard/local_settings.py',
          'link': os.path.join(share_dir, 'local/local_settings.py')},
-        {'src': os.path.join(pip_get_virtualenv_path(),
-         'local/lib/python2.7/site-packages/horizon/static/horizon/'),
+        {'src': os.path.join(os.path.join(charm_dir(),
+         'venv/local/lib/python2.7/site-packages/horizon/static/horizon/'),
          'link': os.path.join(share_dir, 'static/horizon')},
     ]
 
@@ -369,7 +368,7 @@ def git_post_install(projects_yaml):
         pip_install('python-memcached', proxy=http_proxy, venv=True)
     else:
         pip_install('python-memcached', venv=True)
-    python = os.path.join(pip_get_virtualenv_path(), 'bin/python')
+    python = os.path.join(os.path.join(charm_dir(), 'venv/bin/python')
     subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
                            'collectstatic', '--noinput'])
     subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
@@ -396,7 +395,7 @@ def git_post_install(projects_yaml):
 
 def git_post_install_late():
     """Perform horizon post-install setup."""
-    python = os.path.join(pip_get_virtualenv_path(), 'bin/python')
+    python = os.path.join(os.path.join(charm_dir(), 'venv/bin/python')
     subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
                            'collectstatic', '--noinput'])
     subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
