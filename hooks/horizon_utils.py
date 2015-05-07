@@ -351,7 +351,7 @@ def git_post_install(projects_yaml):
         {'src': '/etc/openstack-dashboard/local_settings.py',
          'link': os.path.join(share_dir, 'local/local_settings.py')},
         {'src': os.path.join(charm_dir(),
-             'venv/local/lib/python2.7/site-packages/horizon/static/horizon/'),
+         'venv/local/lib/python2.7/site-packages/horizon/static/horizon/'),
          'link': os.path.join(share_dir, 'static/horizon')},
     ]
 
