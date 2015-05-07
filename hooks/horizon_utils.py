@@ -398,7 +398,6 @@ def git_post_install(projects_yaml):
 
 def git_post_install_late(projects_yaml):
     """Perform horizon post-install setup."""
-    # No such file or directory: '/usr/share/openstack-dashboard/static/horizon/lib
     python = os.path.join(git_pip_venv_dir(projects_yaml), 'bin/python')
     subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
                            'collectstatic', '--noinput'])
