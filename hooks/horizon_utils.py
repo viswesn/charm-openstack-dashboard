@@ -365,9 +365,11 @@ def git_post_install(projects_yaml):
 
     http_proxy = git_yaml_value(projects_yaml, 'http_proxy')
     if http_proxy:
-        pip_install('python-memcached', proxy=http_proxy, venv=True)
+        pip_install('python-memcached', proxy=http_proxy,
+                    venv=os.path.join(charm_dir(), 'venv'))
     else:
-        pip_install('python-memcached', venv=True)
+        pip_install('python-memcached',
+                    venv=os.path.join(charm_dir(), 'venv'))
     python = os.path.join(charm_dir(), 'venv/bin/python')
     subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
                            'collectstatic', '--noinput'])
