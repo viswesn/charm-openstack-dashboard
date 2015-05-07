@@ -125,7 +125,7 @@ def config_changed():
     open_port(443)
 
     if git_install_requested():
-        git_post_install_late()
+        git_post_install_late(config('openstack-origin-git'))
 
 
 @hooks.hook('identity-service-relation-joined')

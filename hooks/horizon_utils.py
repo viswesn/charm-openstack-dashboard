@@ -351,7 +351,7 @@ def git_post_install(projects_yaml):
          'link': '/usr/share/openstack-dashboard/bin/less/lessc'},
         {'src': '/etc/openstack-dashboard/local_settings.py',
          'link': os.path.join(share_dir, 'local/local_settings.py')},
-        {'src': os.path.join(git_pip_venv_dir(),
+        {'src': os.path.join(git_pip_venv_dir(projects_yaml),
          'local/lib/python2.7/site-packages/horizon/static/horizon/'),
          'link': os.path.join(share_dir, 'static/horizon')},
     ]
@@ -367,11 +367,11 @@ def git_post_install(projects_yaml):
     http_proxy = git_yaml_value(projects_yaml, 'http_proxy')
     if http_proxy:
         pip_install('python-memcached', proxy=http_proxy,
-                    venv=git_pip_venv_dir())
+                    venv=git_pip_venv_dir(projects_yaml))
     else:
         pip_install('python-memcached',
-                    venv=git_pip_venv_dir())
-    python = os.path.join(git_pip_venv_dir(), 'bin/python')
+                    venv=git_pip_venv_dir(projects_yaml))
+    python = os.path.join(git_pip_venv_dir(projects_yaml), 'bin/python')
     subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
                            'collectstatic', '--noinput'])
     subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
@@ -396,10 +396,10 @@ def git_post_install(projects_yaml):
     service_restart('apache2')
 
 
-def git_post_install_late():
+def git_post_install_late(projects_yaml):
     """Perform horizon post-install setup."""
     # No such file or directory: '/usr/share/openstack-dashboard/static/horizon/lib
-    python = os.path.join(git_pip_venv_dir(), 'bin/python')
+    python = os.path.join(git_pip_venv_dir(projects_yaml), 'bin/python')
     subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
                            'collectstatic', '--noinput'])
     subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
