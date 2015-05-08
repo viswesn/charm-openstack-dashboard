@@ -192,7 +192,6 @@ class TestHorizohorizon_utils(CharmTestCase):
 
     @patch.object(horizon_utils, 'git_src_dir')
     @patch.object(horizon_utils, 'service_restart')
-    @patch.object(horizon_utils, 'charm_dir')
     @patch('shutil.copyfile')
     @patch('shutil.copytree')
     @patch('os.path.join')
@@ -207,8 +206,7 @@ class TestHorizohorizon_utils(CharmTestCase):
     @patch('grp.getgrnam')
     def test_git_post_install(self, grnam, pwnam, check_call, walk, lchown,
                               chown, chmod, symlink, exists, join, copytree,
-                              copyfile, charm_dir, service_restart,
-                              git_src_dir):
+                              copyfile, service_restart, git_src_dir):
         class IDs(object):
             pw_uid = 999
             gr_gid = 999
