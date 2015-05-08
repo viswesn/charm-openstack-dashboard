@@ -66,6 +66,7 @@ BASE_GIT_PACKAGES = [
     'libxslt1-dev',
     'libyaml-dev',
     'python-dev',
+    'python-lesscpy',
     'python-pip',
     'python-setuptools',
     'zlib1g-dev',
