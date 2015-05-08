@@ -37,7 +37,9 @@ from charmhelpers.core.host import (
     mkdir,
     service_restart,
 )
-
+from charmhelpers.core.templating import (
+    render,
+)
 from charmhelpers.fetch import (
     apt_upgrade,
     apt_update,
@@ -320,10 +322,6 @@ def git_post_install(projects_yaml):
                                 'local_settings.py.example'),
             'dest': '/etc/openstack-dashboard/local_settings.py',
         },
-        'openstack-dashboard': {
-            'src': os.path.join(templates_dir, 'dashboard.conf'),
-            'dest': '/etc/apache2/conf-available/openstack-dashboard.conf',
-        },
     }
 
     for name, files in copy_files.iteritems():
@@ -360,6 +358,11 @@ def git_post_install(projects_yaml):
         if os.path.lexists(s['link']):
             os.remove(s['link'])
         os.symlink(s['src'], s['link'])
+
+    render('git/dashboard.conf',
+           '/etc/apache2/conf-available/openstack-dashboard.conf',
+           {'virtualenv': git_pip_venv_dir(projects_yaml)},
+           owner='root', group='root', perms=0o644)
 
     os.chmod('/var/lib/openstack-dashboard', 0o750)
     os.chmod('/usr/share/openstack-dashboard/manage.py', 0o755),
