@@ -24,7 +24,6 @@ from charmhelpers.contrib.python.packages import (
     pip_install,
 )
 from charmhelpers.core.hookenv import (
-    charm_dir,
     config,
     log
 )
@@ -307,7 +306,6 @@ def git_pre_install():
 def git_post_install(projects_yaml):
     """Perform horizon post-install setup."""
     src_dir = git_src_dir(projects_yaml, 'horizon')
-    templates_dir = os.path.join(charm_dir(), 'templates/git')
     copy_files = {
         'manage': {
             'src': os.path.join(src_dir, 'manage.py'),
