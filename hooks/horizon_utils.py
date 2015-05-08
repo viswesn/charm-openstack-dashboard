@@ -399,6 +399,11 @@ def git_post_install(projects_yaml):
 
 def git_post_install_late(projects_yaml):
     """Perform horizon post-install setup."""
+    render('git/dashboard.conf',
+           '/etc/apache2/conf-available/openstack-dashboard.conf',
+           {'virtualenv': git_pip_venv_dir(projects_yaml)},
+           owner='root', group='root', perms=0o644)
+
     python = os.path.join(git_pip_venv_dir(projects_yaml), 'bin/python')
     subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
                            'collectstatic', '--noinput'])
