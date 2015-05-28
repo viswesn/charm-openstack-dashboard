@@ -181,12 +181,16 @@ class LocalSettingsContext(OSContextGenerator):
         settings = []
         
         for rid in relation_ids("settings"):
-            unit = related_units(rid)[0]
-            rdata = relation_get(unit=unit, rid=rid)
-            if 'setting' in rdata:
-                settings.append('# {0}\n{1}'.format(
-                    unit, rdata['setting'])
-                )
+            try:
+                unit = related_units(rid)[0]
+            except IndexError:
+                pass
+            else:
+                rdata = relation_get(unit=unit, rid=rid)
+                if 'setting' in rdata:
+                    settings.append('# {0}\n{1}'.format(
+                        unit, rdata['setting'])
+                    )
         ctxt = {
             'settings': settings
         }
