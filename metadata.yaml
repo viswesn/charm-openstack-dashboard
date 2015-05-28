@@ -17,6 +17,9 @@ requires:
   ha:
     interface: hacluster
     scope: container
+  settings:
+    interface: openstack-dashboard-settings
+    scope: container
 peers:
   cluster:
     interface: openstack-dashboard-ha
