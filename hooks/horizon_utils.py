@@ -89,7 +89,8 @@ CONFIG_FILES = OrderedDict([
     (LOCAL_SETTINGS, {
         'hook_contexts': [horizon_contexts.HorizonContext(),
                           horizon_contexts.IdentityServiceContext(),
-                          context.SyslogContext()],
+                          context.SyslogContext(),
+                          horizon_contexts.LocalSettingsContext()],
         'services': ['apache2']
     }),
     (APACHE_CONF, {

@@ -172,3 +172,22 @@ class RouterSettingContext(OSContextGenerator):
             'disable_router': False if config('profile') in ['cisco'] else True
         }
         return ctxt
+
+
+class LocalSettingsContext(OSContextGenerator):
+    def __call__(self):
+        ''' Additional config stanzas to be appended to local_settings.py '''
+        
+        settings = []
+        
+        for rid in relation_ids("settings"):
+            for unit in related_units(rid):
+                rdata = relation_get(unit=unit, rid=rid)
+                if 'setting' in rdata:
+                    settings.append('# {0}/{1}\n{2}'.format(
+                        rid, unit, rdata['setting'])
+                    )
+        ctxt = {
+            'settings': settings
+        }
+        return ctxt

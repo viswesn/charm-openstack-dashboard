@@ -619,3 +619,5 @@ LOGIN_REDIRECT_URL='{{ webroot }}'
 # installations should have this set accordingly.  For more information
 # see https://docs.djangoproject.com/en/dev/ref/settings/.
 ALLOWED_HOSTS = '*'
+
+{{ settings|join('\n\n') }}
