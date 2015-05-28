@@ -11,14 +11,14 @@ provides:
     scope: container
   website:
     interface: http
+  settings:
+    interface: openstack-dashboard-settings
+    scope: container
 requires:
   identity-service:
     interface: keystone
   ha:
     interface: hacluster
-    scope: container
-  settings:
-    interface: openstack-dashboard-settings
     scope: container
 peers:
   cluster:
