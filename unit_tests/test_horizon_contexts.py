@@ -251,3 +251,12 @@ class TestHorizonContexts(CharmTestCase):
         self.test_config.set('profile', None)
         self.assertEquals(horizon_contexts.RouterSettingContext()(),
                           {'disable_router': True, })
+    
+    def test_PluginContext(self):
+        self.relation_ids.return_value = ['plugin:0']
+        self.related_units.return_value = ['openstack-plugin/0']
+        self.relation_get.return_value = { 'setting': 'FOO = True' }
+        
+        self.assertEquals(horizon_contexts.PluginContext()(),
+                          {'settings': ['# openstack-plugin/0\n'
+                                        'FOO = True']})
