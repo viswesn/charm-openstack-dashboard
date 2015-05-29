@@ -174,13 +174,13 @@ class RouterSettingContext(OSContextGenerator):
         return ctxt
 
 
-class LocalSettingsContext(OSContextGenerator):
+class PluginContext(OSContextGenerator):
     def __call__(self):
         ''' Additional config stanzas to be appended to local_settings.py '''
 
         settings = []
 
-        for rid in relation_ids("settings"):
+        for rid in relation_ids("plugin"):
             try:
                 unit = related_units(rid)[0]
             except IndexError:

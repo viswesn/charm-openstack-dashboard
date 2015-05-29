@@ -244,12 +244,12 @@ def update_nrpe_config():
     nrpe_setup.write()
 
 
-@hooks.hook('settings-relation-joined')
-def settings_relation_joined():
+@hooks.hook('plugin-relation-joined')
+def plugin_relation_joined():
     relation_set(release=os_release("openstack-dashboard"))
 
 
-@hooks.hook('settings-relation-changed')
+@hooks.hook('plugin-relation-changed')
 @restart_on_change(restart_map())
 def update_plugin_config():
     CONFIGS.write(LOCAL_SETTINGS)
