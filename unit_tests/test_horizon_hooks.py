@@ -129,14 +129,14 @@ class TestHorizonHooks(CharmTestCase):
         self.apt_install.assert_called_with(['foo', 'bar'], fatal=True)
         self.git_install.assert_called_with(projects_yaml)
 
-    @patch('charmhelpers.core.host.file_hash')
+    @patch('charmhelpers.core.host.path_hash')
     @patch('charmhelpers.core.host.service')
     @patch.object(utils, 'git_install_requested')
     def test_upgrade_charm_hook(self, _git_requested, _service, _hash):
         _git_requested.return_value = False
         side_effects = []
-        [side_effects.append(None) for f in RESTART_MAP.keys()]
-        [side_effects.append('bar') for f in RESTART_MAP.keys()]
+        [side_effects.append({}) for f in RESTART_MAP.keys()]
+        [side_effects.append({f: 'bar'}) for f in RESTART_MAP.keys()]
         _hash.side_effect = side_effects
         self.filter_installed_packages.return_value = ['foo']
         self._call_hook('upgrade-charm')
