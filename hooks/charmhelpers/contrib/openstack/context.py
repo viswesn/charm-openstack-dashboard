@@ -194,6 +194,15 @@ class OSContextGenerator(object):
         raise NotImplementedError
 
 
+class OSPatternContextGenerator(OSContextGenerator):
+    """Base class for pattern context generators.
+
+    __call__ should return a dictionary of { tuple: dict }, where the tuple
+    will be used as input for format() for the filename pattern as registered
+    by OSConfigRenderer.register_pattern().
+    """
+
+
 class SharedDBContext(OSContextGenerator):
     interfaces = ['shared-db']
 
