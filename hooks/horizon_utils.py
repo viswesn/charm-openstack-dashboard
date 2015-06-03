@@ -90,7 +90,7 @@ CONFIG_FILES = OrderedDict([
         'hook_contexts': [horizon_contexts.HorizonContext(),
                           horizon_contexts.IdentityServiceContext(),
                           context.SyslogContext(),
-                          horizon_contexts.PluginContext()],
+                          horizon_contexts.LocalSettingsContext()],
         'services': ['apache2']
     }),
     (APACHE_CONF, {

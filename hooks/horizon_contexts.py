@@ -10,6 +10,7 @@ from charmhelpers.core.hookenv import (
 )
 from charmhelpers.contrib.openstack.context import (
     OSContextGenerator,
+    OSPatternContextGenerator,
     HAProxyContext,
     context_complete
 )
@@ -27,6 +28,7 @@ from charmhelpers.core.host import pwgen
 
 from base64 import b64decode
 import os
+import re
 
 
 class HorizonHAProxyContext(HAProxyContext):
@@ -174,7 +176,7 @@ class RouterSettingContext(OSContextGenerator):
         return ctxt
 
 
-class PluginContext(OSContextGenerator):
+class LocalSettingsContext(OSContextGenerator):
     def __call__(self):
         ''' Additional config stanzas to be appended to local_settings.py '''
 
@@ -187,12 +189,35 @@ class PluginContext(OSContextGenerator):
                 pass
             else:
                 rdata = relation_get(unit=unit, rid=rid)
-                if 'setting' in rdata:
+                if 'local_settings' in rdata:
                     settings.append('# {0}\n{1}'.format(
-                        unit, rdata['setting'])
+                        unit, rdata['local_settings'])
                     )
         ctxt = {
             'settings': settings
         }
         return ctxt
 
+
+class PluginsContext(OSPatternContextGenerator):
+    def __call__(self):
+
+        plugins = {}
+
+        for rid in relation_ids("plugin"):
+            try:
+                unit = related_units(rid)[0]
+            except IndexError:
+                pass
+            else:
+                rdata = relation_get(unit=unit, rid=rid)
+                try:
+                    if rdata['priority'] is not None and rdata['plugin_file']:
+                        service = re.sub('[^a-z0-9_]', '_', unit.split('/')[0])
+                        plugins[(rdata['priority'], service)] = {
+                                    'unit': unit,
+                                    'plugin_file': rdata['plugin_file']}
+                except KeyError:
+                    pass
+
+        return plugins
