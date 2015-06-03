@@ -33,7 +33,7 @@ from horizon_utils import (
     register_configs,
     restart_map,
     services,
-    LOCAL_SETTINGS, HAPROXY_CONF,
+    LOCAL_SETTINGS, HAPROXY_CONF, PLUGIN_SETTINGS,
     enable_ssl,
     do_openstack_upgrade,
     git_install,
@@ -253,6 +253,7 @@ def plugin_relation_joined():
 @restart_on_change(restart_map())
 def update_plugin_config():
     CONFIGS.write(LOCAL_SETTINGS)
+    CONFIGS.write(PLUGIN_SETTINGS)
 
 
 def main():
