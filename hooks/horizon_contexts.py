@@ -196,7 +196,7 @@ class LocalSettingsContext(OSContextGenerator):
             'settings': [
                 '# {0}\n{1}'.format(u, rd['local_settings'])
                 for u, rd in sorted(relations,
-                                   key=lambda r: r[1]['priority'])]
+                                    key=lambda r: r[1]['priority'])]
         }
         return ctxt
 

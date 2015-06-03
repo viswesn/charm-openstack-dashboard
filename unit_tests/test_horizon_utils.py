@@ -57,6 +57,8 @@ class TestHorizohorizon_utils(CharmTestCase):
             ('/etc/haproxy/haproxy.cfg', ['haproxy']),
             ('/usr/share/openstack-dashboard/openstack_dashboard/enabled/'
              '_40_router.py', ['apache2']),
+            ('/usr/share/openstack-dashboard/openstack_dashboard/local/'
+             'enabled/_*_juju_*.py', ['apache2'])
         ])
         self.assertEquals(horizon_utils.restart_map(), ex_map)
 
@@ -141,6 +143,33 @@ class TestHorizohorizon_utils(CharmTestCase):
             calls.append(
                 call(conf, horizon_utils.CONFIG_FILES[conf]['hook_contexts']))
         configs.register.assert_has_calls(calls)
+
+    @patch('os.path.isdir')
+    @patch('os.path.exists')
+    def test_register_configs_icehouse(self, _exists, _isdir):
+        _exists.return_value = True
+        _isdir.return_value = True
+        self.os_release.return_value = 'icehouse'
+        self.cmp_pkgrevno.return_value = -1
+        configs = horizon_utils.register_configs()
+        confs = [horizon_utils.LOCAL_SETTINGS,
+                 horizon_utils.HAPROXY_CONF,
+                 horizon_utils.PORTS_CONF,
+                 horizon_utils.APACHE_DEFAULT,
+                 horizon_utils.APACHE_CONF,
+                 horizon_utils.APACHE_SSL,
+                 horizon_utils.ROUTER_SETTING]
+        calls = []
+        for conf in confs:
+            calls.append(
+                call(conf,
+                     horizon_utils.CONFIG_FILES[conf]['hook_contexts']))
+        configs.register.assert_has_calls(calls)
+
+        configs.register_pattern.assert_has_calls([
+            call(horizon_utils.PLUGIN_SETTINGS,
+                 horizon_utils.CONFIG_FILES[horizon_utils.PLUGIN_SETTINGS]
+                                                 ['hook_contexts'])])
 
     @patch.object(horizon_utils, 'git_install_requested')
     @patch.object(horizon_utils, 'git_clone_and_install')
