@@ -180,7 +180,7 @@ class LocalSettingsContext(OSContextGenerator):
     def __call__(self):
         ''' Additional config stanzas to be appended to local_settings.py '''
 
-        settings = []
+        relations = []
 
         for rid in relation_ids("plugin"):
             try:
@@ -189,12 +189,14 @@ class LocalSettingsContext(OSContextGenerator):
                 pass
             else:
                 rdata = relation_get(unit=unit, rid=rid)
-                if 'local_settings' in rdata:
-                    settings.append('# {0}\n{1}'.format(
-                        unit, rdata['local_settings'])
-                    )
+                if set(('local_settings', 'priority')) <= set(rdata.keys()):
+                    relations.append((unit, rdata))
+
         ctxt = {
-            'settings': settings
+            'settings': [
+                '# {0}\n{1}'.format(u, rd['local_settings'])
+                for u, rd in sorted(relations,
+                                   key=lambda r: r[1]['priority'])]
         }
         return ctxt
 
@@ -215,8 +217,8 @@ class PluginsContext(OSPatternContextGenerator):
                     if rdata['priority'] is not None and rdata['plugin_file']:
                         service = re.sub('[^a-z0-9_]', '_', unit.split('/')[0])
                         plugins[(rdata['priority'], service)] = {
-                                    'unit': unit,
-                                    'plugin_file': rdata['plugin_file']}
+                            'unit': unit,
+                            'plugin_file': rdata['plugin_file']}
                 except KeyError:
                     pass
 
