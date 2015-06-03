@@ -257,9 +257,9 @@ class TestHorizonContexts(CharmTestCase):
         self.related_units.side_effect = [['horizon-plugin/0'],
                                           ['horizon-plugin-too/0']]
         self.relation_get.side_effect = [{'priority': 99,
-                                          'local_settings': 'FOO = True'},
+                                          'local-settings': 'FOO = True'},
                                          {'priority': 60,
-                                          'local_settings': 'BAR = False'}]
+                                          'local-settings': 'BAR = False'}]
 
         self.assertEquals(horizon_contexts.LocalSettingsContext()(),
                           {'settings': ['# horizon-plugin-too/0\n'
@@ -274,11 +274,11 @@ class TestHorizonContexts(CharmTestCase):
         self.relation_get.side_effect = [
             {
                 'priority': 99,
-                'plugin_file': 'DASHBOARD = \'some_dashboard\'\n'
+                'plugin-file': 'DASHBOARD = \'some_dashboard\'\n'
                                'DISABLED = True'},
             {
                 'priority': 60,
-                'plugin_file': 'PANEL = \'some_panel\'\n'
+                'plugin-file': 'PANEL = \'some_panel\'\n'
                                'PANEL_DASHBOARD = \'admin\'\n'
                                'PANEL_GROUP = \'admin\'\n'
                                'REMOVE_PANEL = True'}]

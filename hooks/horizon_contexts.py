@@ -189,12 +189,12 @@ class LocalSettingsContext(OSContextGenerator):
                 pass
             else:
                 rdata = relation_get(unit=unit, rid=rid)
-                if set(('local_settings', 'priority')) <= set(rdata.keys()):
+                if set(('local-settings', 'priority')) <= set(rdata.keys()):
                     relations.append((unit, rdata))
 
         ctxt = {
             'settings': [
-                '# {0}\n{1}'.format(u, rd['local_settings'])
+                '# {0}\n{1}'.format(u, rd['local-settings'])
                 for u, rd in sorted(relations,
                                     key=lambda r: r[1]['priority'])]
         }
@@ -214,11 +214,11 @@ class PluginsContext(OSPatternContextGenerator):
             else:
                 rdata = relation_get(unit=unit, rid=rid)
                 try:
-                    if rdata['priority'] is not None and rdata['plugin_file']:
+                    if rdata['priority'] is not None and rdata['plugin-file']:
                         service = re.sub('[^a-z0-9_]', '_', unit.split('/')[0])
                         plugins[(rdata['priority'], service)] = {
                             'unit': unit,
-                            'plugin_file': rdata['plugin_file']}
+                            'plugin_file': rdata['plugin-file']}
                 except KeyError:
                     pass
 

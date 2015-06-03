@@ -169,7 +169,7 @@ class TestHorizohorizon_utils(CharmTestCase):
         configs.register_pattern.assert_has_calls([
             call(horizon_utils.PLUGIN_SETTINGS,
                  horizon_utils.CONFIG_FILES[horizon_utils.PLUGIN_SETTINGS]
-                                                 ['hook_contexts'])])
+                                           ['hook_contexts'])])
 
     @patch.object(horizon_utils, 'git_install_requested')
     @patch.object(horizon_utils, 'git_clone_and_install')
