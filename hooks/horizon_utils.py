@@ -17,9 +17,13 @@ from charmhelpers.contrib.openstack.utils import (
     git_clone_and_install,
     os_release,
     git_src_dir,
+    git_pip_venv_dir,
+    git_yaml_value,
+)
+from charmhelpers.contrib.python.packages import (
+    pip_install,
 )
 from charmhelpers.core.hookenv import (
-    charm_dir,
     config,
     log
 )
@@ -32,7 +36,9 @@ from charmhelpers.core.host import (
     mkdir,
     service_restart,
 )
-
+from charmhelpers.core.templating import (
+    render,
+)
 from charmhelpers.fetch import (
     apt_upgrade,
     apt_update,
@@ -53,9 +59,14 @@ BASE_PACKAGES = [
 BASE_GIT_PACKAGES = [
     'apache2',
     'libapache2-mod-wsgi',
+    'libffi-dev',
+    'libpcre3-dev',
+    'libssl-dev',
     'libxml2-dev',
     'libxslt1-dev',
+    'libyaml-dev',
     'python-dev',
+    'python-lesscpy',
     'python-pip',
     'python-setuptools',
     'zlib1g-dev',
@@ -296,7 +307,6 @@ def git_pre_install():
 def git_post_install(projects_yaml):
     """Perform horizon post-install setup."""
     src_dir = git_src_dir(projects_yaml, 'horizon')
-    templates_dir = os.path.join(charm_dir(), 'templates/git')
     copy_files = {
         'manage': {
             'src': os.path.join(src_dir, 'manage.py'),
@@ -310,10 +320,6 @@ def git_post_install(projects_yaml):
             'src': os.path.join(src_dir, 'openstack_dashboard/local',
                                 'local_settings.py.example'),
             'dest': '/etc/openstack-dashboard/local_settings.py',
-        },
-        'openstack-dashboard': {
-            'src': os.path.join(templates_dir, 'dashboard.conf'),
-            'dest': '/etc/apache2/conf-available/openstack-dashboard.conf',
         },
     }
 
@@ -342,8 +348,8 @@ def git_post_install(projects_yaml):
          'link': '/usr/share/openstack-dashboard/bin/less/lessc'},
         {'src': '/etc/openstack-dashboard/local_settings.py',
          'link': os.path.join(share_dir, 'local/local_settings.py')},
-        {'src':
-            '/usr/local/lib/python2.7/dist-packages/horizon/static/horizon/',
+        {'src': os.path.join(git_pip_venv_dir(projects_yaml),
+         'local/lib/python2.7/site-packages/horizon/static/horizon/'),
          'link': os.path.join(share_dir, 'static/horizon')},
     ]
 
@@ -352,12 +358,25 @@ def git_post_install(projects_yaml):
             os.remove(s['link'])
         os.symlink(s['src'], s['link'])
 
+    render('git/dashboard.conf',
+           '/etc/apache2/conf-available/openstack-dashboard.conf',
+           {'virtualenv': git_pip_venv_dir(projects_yaml)},
+           owner='root', group='root', perms=0o644)
+
     os.chmod('/var/lib/openstack-dashboard', 0o750)
     os.chmod('/usr/share/openstack-dashboard/manage.py', 0o755),
 
-    subprocess.check_call(['/usr/share/openstack-dashboard/manage.py',
+    http_proxy = git_yaml_value(projects_yaml, 'http_proxy')
+    if http_proxy:
+        pip_install('python-memcached', proxy=http_proxy,
+                    venv=git_pip_venv_dir(projects_yaml))
+    else:
+        pip_install('python-memcached',
+                    venv=git_pip_venv_dir(projects_yaml))
+    python = os.path.join(git_pip_venv_dir(projects_yaml), 'bin/python')
+    subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
                            'collectstatic', '--noinput'])
-    subprocess.check_call(['/usr/share/openstack-dashboard/manage.py',
+    subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
                            'compress', '--force'])
 
     uid = pwd.getpwnam('horizon').pw_uid
@@ -379,9 +398,15 @@ def git_post_install(projects_yaml):
     service_restart('apache2')
 
 
-def git_post_install_late():
+def git_post_install_late(projects_yaml):
     """Perform horizon post-install setup."""
-    subprocess.check_call(['/usr/share/openstack-dashboard/manage.py',
+    render('git/dashboard.conf',
+           '/etc/apache2/conf-available/openstack-dashboard.conf',
+           {'virtualenv': git_pip_venv_dir(projects_yaml)},
+           owner='root', group='root', perms=0o644)
+
+    python = os.path.join(git_pip_venv_dir(projects_yaml), 'bin/python')
+    subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
                            'collectstatic', '--noinput'])
-    subprocess.check_call(['/usr/share/openstack-dashboard/manage.py',
+    subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
                            'compress', '--force'])
