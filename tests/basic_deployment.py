@@ -64,10 +64,10 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
             openstack_origin_git = {
                 'repositories': [
                     {'name': 'requirements',
-                     'repository': 'git://git.openstack.org/openstack/requirements',
+                     'repository': 'git://github.com/openstack/requirements',
                      'branch': branch},
                     {'name': 'horizon',
-                     'repository': 'git://git.openstack.org/openstack/horizon',
+                     'repository': 'git://github.com/openstack/horizon',
                      'branch': branch},
                 ],
                 'directory': '/mnt/openstack-git',
