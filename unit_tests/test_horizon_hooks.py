@@ -129,7 +129,7 @@ class TestHorizonHooks(CharmTestCase):
         self.apt_install.assert_called_with(['foo', 'bar'], fatal=True)
         self.git_install.assert_called_with(projects_yaml)
 
-    @patch('charmhelpers.core.host.file_hash')
+    @patch('charmhelpers.core.host.path_hash')
     @patch('charmhelpers.core.host.service')
     @patch.object(utils, 'git_install_requested')
     def test_upgrade_charm_hook(self, _git_requested, _service, _hash):
