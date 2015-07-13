@@ -63,10 +63,9 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
             amulet_http_proxy = os.environ.get('AMULET_HTTP_PROXY')
             if self._get_openstack_release() == self.trusty_icehouse:
                 reqs_repo = 'git://github.com/coreycb/requirements'
-                horizon_repo = 'git://github.com/coreycb/horizon'
             else:       
                 reqs_repo = 'git://github.com/openstack/requirements'
-                horizon_repo = 'git://github.com/openstack/horizon'
+            horizon_repo = 'git://github.com/openstack/horizon'
             openstack_origin_git = {
                 'repositories': [
                     {'name': 'requirements',
