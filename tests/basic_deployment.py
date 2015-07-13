@@ -80,7 +80,7 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
                     {'name': 'horizon',
                      'repository': horizon_repo,
                      'branch': horizon_branch},
-                ], 
+                ],
                 'directory': '/mnt/openstack-git',
                 'http_proxy': amulet_http_proxy,
                 'https_proxy': amulet_http_proxy,
