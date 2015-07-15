@@ -373,15 +373,11 @@ def git_post_install(projects_yaml):
     else:
         pip_install('python-memcached',
                     venv=git_pip_venv_dir(projects_yaml))
-
-    if os_release('openstack-dashboard') != 'icehouse':
-        python = os.path.join(git_pip_venv_dir(projects_yaml), 'bin/python')
-        subprocess.check_call([python,
-                               '/usr/share/openstack-dashboard/manage.py',
-                               'collectstatic', '--noinput'])
-        subprocess.check_call([python,
-                               '/usr/share/openstack-dashboard/manage.py',
-                               'compress', '--force'])
+    python = os.path.join(git_pip_venv_dir(projects_yaml), 'bin/python')
+    subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
+                           'collectstatic', '--noinput'])
+    subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
+                           'compress', '--force'])
 
     uid = pwd.getpwnam('horizon').pw_uid
     gid = grp.getgrnam('horizon').gr_gid
@@ -409,11 +405,8 @@ def git_post_install_late(projects_yaml):
            {'virtualenv': git_pip_venv_dir(projects_yaml)},
            owner='root', group='root', perms=0o644)
 
-    if os_release('openstack-dashboard') != 'icehouse':
-        python = os.path.join(git_pip_venv_dir(projects_yaml), 'bin/python')
-        subprocess.check_call([python,
-                               '/usr/share/openstack-dashboard/manage.py',
-                               'collectstatic', '--noinput'])
-        subprocess.check_call([python,
-                              '/usr/share/openstack-dashboard/manage.py',
-                               'compress', '--force'])
+    python = os.path.join(git_pip_venv_dir(projects_yaml), 'bin/python')
+    subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
+                           'collectstatic', '--noinput'])
+    subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
+                           'compress', '--force'])
