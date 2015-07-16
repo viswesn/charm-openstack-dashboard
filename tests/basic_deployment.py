@@ -59,21 +59,24 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
         """Configure all of the services."""
         horizon_config = {}
         if self.git:
-            release = self._get_openstack_release_string()
-            reqs_branch = 'stable/' + release
-            if self._get_openstack_release() == self.trusty_icehouse:
-                horizon_branch = release + '-eol'
-            else:
-                horizon_branch = 'stable/' + release
             amulet_http_proxy = os.environ.get('AMULET_HTTP_PROXY')
+
+            reqs_repo = 'git://github.com/openstack/requirements'
+            horizon_repo = 'git://github.com/openstack/horizon'
+            if self._get_openstack_release() == self.trusty_icehouse:
+                reqs_repo = 'git://github.com/coreycb/requirements'
+                horizon_repo = 'git://github.com/coreycb/horizon'
+
+            branch = 'stable/' + self._get_openstack_release_string()
+
             openstack_origin_git = {
                 'repositories': [
                     {'name': 'requirements',
-                     'repository': 'git://github.com/openstack/requirements',
-                     'branch': reqs_branch},
+                     'repository': reqs_repo, 
+                     'branch': branch},
                     {'name': 'horizon',
-                     'repository': 'git://github.com/openstack/horizon',
-                     'branch': horizon_branch},
+                     'repository': horizon_repo,
+                     'branch': branch},
                 ],
                 'directory': '/mnt/openstack-git',
                 'http_proxy': amulet_http_proxy,
