@@ -172,7 +172,7 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
         conf = '/etc/openstack-dashboard/local_settings.py'
         services = ['apache2']
         self.d.configure('openstack-dashboard', {'use-syslog': 'True'})
-        time = 60
+        time = 120
         for s in services:
             if not u.service_restarted(self.openstack_dashboard_sentry, s, conf,
                                        pgrep_full=True, sleep_time=time):
