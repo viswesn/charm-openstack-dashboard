@@ -16,4 +16,5 @@ packages:
     - python-keystoneclient
     - python-neutronclient
     - python-novaclient
+    - python-pika
     - python-swiftclient
