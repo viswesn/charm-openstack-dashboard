@@ -142,6 +142,7 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
         # Let things settle a bit before moving forward
         time.sleep(30)
 
+    # NOTE(beisner): Switch to helper once the rabbitmq test refactor lands.
     def crude_py_parse(self, file_contents, expected):
         for line in file_contents.split('\n'):
             if '=' in line:
@@ -158,7 +159,6 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
     def test_100_services(self):
         """Verify the expected services are running on the corresponding
            service units."""
-
         services = {
             self.keystone_sentry: ['keystone'],
             self.openstack_dashboard_sentry: ['apache2']
@@ -209,6 +209,7 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
 
     def test_302_router_settings(self):
         u.log.debug('Checking dashboard router settings...')
+# switch to same comparison logic used in other charm tests
         if self.openstack > "icehouse":
             unit = self.openstack_dashboard_sentry
             conf = ('/usr/share/openstack-dashboard/openstack_dashboard/'
@@ -242,22 +243,21 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
         set_default = {'use-syslog': 'False'}
         set_alternate = {'use-syslog': 'True'}
 
-        # Config file affected by juju set config change
-        conf_file = '/etc/openstack-dashboard/local_settings.py'
-
-        # Services which are expected to restart upon config change
-        services = ['apache2']
+        # Services which are expected to restart upon config change,
+        # and corresponding config files affected by the change
+        services = {'apache2': '/etc/openstack-dashboard/local_settings.py'}
 
         # Make config change, check for service restarts
         u.log.debug('Making config change on {}...'.format(juju_service))
+        mtime = u.get_sentry_time(sentry)
         self.d.configure(juju_service, set_alternate)
 
-        sleep_time = 180
-        for s in services:
+        sleep_time = 120
+        for s, conf_file in services.iteritems():
             u.log.debug("Checking that service restarted: {}".format(s))
-            if not u.service_restarted(sentry, s,
-                                       conf_file, sleep_time=sleep_time,
-                                       pgrep_full=True):
+            if not u.validate_service_config_changed(sentry, mtime, s,
+                                                     conf_file,
+                                                     sleep_time=sleep_time):
                 self.d.configure(juju_service, set_default)
                 msg = "service {} didn't restart after config change".format(s)
                 amulet.raise_status(amulet.FAIL, msg=msg)
