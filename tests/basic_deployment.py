@@ -13,7 +13,7 @@ from charmhelpers.contrib.openstack.amulet.deployment import (
 from charmhelpers.contrib.openstack.amulet.utils import (
     OpenStackAmuletUtils,
     DEBUG,
-    #ERROR
+    # ERROR
 )
 
 # Use DEBUG to turn on debug logging
@@ -26,8 +26,10 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
     def __init__(self, series, openstack=None, source=None, git=False,
                  stable=False):
         """Deploy the entire test environment."""
-        super(OpenstackDashboardBasicDeployment,
-              self).__init__(series, openstack, source, stable)
+        super(OpenstackDashboardBasicDeployment, self).__init__(series,
+                                                                openstack,
+                                                                source,
+                                                                stable)
         self.git = git
         self._add_services()
         self._add_relations()
@@ -36,16 +38,16 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
         self._initialize_tests()
 
     def _add_services(self):
-        """Add services
-
-        Add the services that we're testing, where openstack-dashboard
-        is local, and the rest of the service are from lp branches that are
+        """Add the services that we're testing, where openstack-dashboard is
+        local, and the rest of the service are from lp branches that are
         compatible with the local charm (e.g. stable or next).
         """
         this_service = {'name': 'openstack-dashboard'}
-        other_services = [{'name': 'keystone'}, {'name': 'mysql'}]
-        super(OpenstackDashboardBasicDeployment,
-              self)._add_services(this_service, other_services)
+        other_services = [{'name': 'keystone'},
+                          {'name': 'mysql'}]
+        super(OpenstackDashboardBasicDeployment, self)._add_services(
+            this_service,
+            other_services)
 
     def _add_relations(self):
         """Add all of the relations for the services."""
@@ -54,8 +56,8 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
             'keystone:identity-service',
             'keystone:shared-db': 'mysql:shared-db',
         }
-        super(OpenstackDashboardBasicDeployment,
-              self)._add_relations(relations)
+        super(OpenstackDashboardBasicDeployment, self)._add_relations(
+            relations)
 
     def _configure_services(self):
         """Configure all of the services."""
@@ -71,19 +73,49 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
 
             branch = 'stable/' + self._get_openstack_release_string()
 
-            openstack_origin_git = {
-                'repositories': [
-                    {'name': 'requirements',
-                     'repository': reqs_repo,
-                     'branch': branch},
-                    {'name': 'horizon',
-                     'repository': horizon_repo,
-                     'branch': branch},
-                ],
-                'directory': '/mnt/openstack-git',
-                'http_proxy': amulet_http_proxy,
-                'https_proxy': amulet_http_proxy,
-            }
+            if self._get_openstack_release() == self.trusty_juno:
+                openstack_origin_git = {
+                    'repositories': [
+                        {'name': 'requirements',
+                         'repository': reqs_repo,
+                         'branch': branch},
+                        # NOTE(coreycb): Pin oslo libraries here because
+                        # they're not capped and recently released versions
+                        # causing issues for juno.
+                        {'name': 'oslo-config',
+                         'repository': 'git://github.com/openstack/oslo.config',  # noqa
+                         'branch': '1.6.0'},
+                        {'name': 'oslo-i18n',
+                         'repository': 'git://github.com/openstack/oslo.i18n',
+                         'branch': '1.3.1'},
+                        {'name': 'oslo-serialization',
+                         'repository': 'git://github.com/openstack/oslo.serialization',  # noqa
+                         'branch': '1.2.0'},
+                        {'name': 'oslo-utils',
+                         'repository': 'git://github.com/openstack/oslo.utils',
+                         'branch': '1.4.0'},
+                        {'name': 'horizon',
+                         'repository': horizon_repo,
+                         'branch': branch},
+                    ],
+                    'directory': '/mnt/openstack-git',
+                    'http_proxy': amulet_http_proxy,
+                    'https_proxy': amulet_http_proxy,
+                }
+            else:
+                openstack_origin_git = {
+                    'repositories': [
+                        {'name': 'requirements',
+                         'repository': reqs_repo,
+                         'branch': branch},
+                        {'name': 'horizon',
+                         'repository': horizon_repo,
+                         'branch': branch},
+                    ],
+                    'directory': '/mnt/openstack-git',
+                    'http_proxy': amulet_http_proxy,
+                    'https_proxy': amulet_http_proxy,
+                }
             horizon_config['openstack-origin-git'] = \
                 yaml.dump(openstack_origin_git)
 
@@ -93,8 +125,8 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
         configs = {'openstack-dashboard': horizon_config,
                    'mysql': mysql_config,
                    'keystone': keystone_config}
-        super(OpenstackDashboardBasicDeployment,
-              self)._configure_services(configs)
+        super(OpenstackDashboardBasicDeployment, self)._configure_services(
+            configs)
 
     def _initialize_tests(self):
         """Perform final initialization before tests get run."""
@@ -174,21 +206,6 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
         if ret:
             message = u.relation_error('keystone identity-service', ret)
             amulet.raise_status(amulet.FAIL, msg=message)
-
-    def test_300_local_settings(self):
-        u.log.debug('Checking dashboard local settings...')
-        unit = self.openstack_dashboard_sentry
-        ksentry = self.keystone_sentry
-        conf = '/etc/openstack-dashboard/local_settings.py'
-        file_contents = unit.file_contents(conf)
-        rdata = ksentry.relation('identity-service',
-                                 'openstack-dashboard:identity-service')
-        expected = {
-            'LOGIN_REDIRECT_URL': """'/horizon'""",
-            'OPENSTACK_HOST': '"%s"' % (rdata['private-address']),
-            'OPENSTACK_KEYSTONE_DEFAULT_ROLE': '"Member"'
-        }
-        self.crude_py_parse(file_contents, expected)
 
     def test_302_router_settings(self):
         u.log.debug('Checking dashboard router settings...')
