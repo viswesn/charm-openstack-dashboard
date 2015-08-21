@@ -34,8 +34,6 @@ import errno
 import tempfile
 from subprocess import CalledProcessError
 
-from charmhelpers.cli import cmdline
-
 import six
 if not six.PY3:
     from UserDict import UserDict
@@ -76,6 +74,7 @@ def cached(func):
         res = func(*args, **kwargs)
         cache[key] = res
         return res
+    wrapper._wrapped = func
     return wrapper
 
 
@@ -175,7 +174,6 @@ def relation_type():
     return os.environ.get('JUJU_RELATION', None)
 
 
-@cmdline.subcommand()
 @cached
 def relation_id(relation_name=None, service_or_unit=None):
     """The relation ID for the current or a specified relation"""
@@ -201,13 +199,11 @@ def remote_unit():
     return os.environ.get('JUJU_REMOTE_UNIT', None)
 
 
-@cmdline.subcommand()
 def service_name():
     """The name service group this unit belongs to"""
     return local_unit().split('/')[0]
 
 
-@cmdline.subcommand()
 @cached
 def remote_service_name(relid=None):
     """The remote service name for a given relation-id (or the current relation)"""
