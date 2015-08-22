@@ -208,9 +208,8 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
             amulet.raise_status(amulet.FAIL, msg=message)
 
     def test_302_router_settings(self):
-        u.log.debug('Checking dashboard router settings...')
-# switch to same comparison logic used in other charm tests
-        if self.openstack > "icehouse":
+        if self._get_openstack_release() > self.trusty_icehouse:
+            u.log.debug('Checking dashboard router settings...')
             unit = self.openstack_dashboard_sentry
             conf = ('/usr/share/openstack-dashboard/openstack_dashboard/'
                     'enabled/_40_router.py')
