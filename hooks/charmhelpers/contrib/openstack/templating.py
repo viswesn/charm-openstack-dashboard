@@ -14,9 +14,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with charm-helpers.  If not, see <http://www.gnu.org/licenses/>.
 
-import glob
 import os
-import string
 
 import six
 
@@ -27,7 +25,6 @@ from charmhelpers.core.hookenv import (
     INFO
 )
 from charmhelpers.contrib.openstack.utils import OPENSTACK_CODENAMES
-from charmhelpers.contrib.openstack.context import OSPatternContextGenerator
 
 try:
     from jinja2 import FileSystemLoader, ChoiceLoader, Environment, exceptions
@@ -99,7 +96,7 @@ class OSConfigTemplate(object):
         else:
             self.contexts = contexts
 
-        self._complete_contexts = set()
+        self._complete_contexts = []
 
     def context(self):
         ctxt = {}
@@ -108,7 +105,9 @@ class OSConfigTemplate(object):
             if _ctxt:
                 ctxt.update(_ctxt)
                 # track interfaces for every complete context.
-                self._complete_contexts.update(context.interfaces)
+                [self._complete_contexts.append(interface)
+                 for interface in context.interfaces
+                 if interface not in self._complete_contexts]
         return ctxt
 
     def complete_contexts(self):
@@ -119,41 +118,6 @@ class OSConfigTemplate(object):
             return self._complete_contexts
         self.context()
         return self._complete_contexts
-
-
-class OSPatternConfigTemplate(OSConfigTemplate):
-    """
-    Associates a config pattern template with a list of context generators.
-    Responsible for constructing a template context based on those generators.
-    """
-    def __init__(self, pattern, contexts):
-        self.pattern = pattern
-        super(OSPatternConfigTemplate, self).__init__(config_file=None,
-                                                      contexts=contexts)
-
-    def context(self):
-        base_ctxt = {}
-        ctxt = {}
-        for context in self.contexts:
-            _ctxt = context()
-            if not _ctxt:
-                continue
-            elif isinstance(context, OSPatternContextGenerator):
-                # for each returned key initialize its context with base_ctxt
-                # if not defined before and update with new data
-                for k, v in _ctxt.items():
-                    if k not in ctxt:
-                        ctxt[k] = base_ctxt.copy()
-                    ctxt[k].update(v)
-            else:
-                # update the base context and all pre-existing file-specific
-                # contexts
-                base_ctxt.update(_ctxt)
-                for key in ctxt:
-                    ctxt[key].update(_ctxt)
-            # track interfaces for every complete context.
-            self._complete_contexts.update(context.interfaces)
-        return ctxt
 
 
 class OSConfigRenderer(object):
@@ -168,13 +132,6 @@ class OSConfigRenderer(object):
         # import some common context generates from charmhelpers
         from charmhelpers.contrib.openstack import context
 
-        # or create your own
-        class SimpleContextGenerator(OSContextGenerator):
-            def __call__():
-                return {
-                    'key': 'value'
-                }
-
         # Create a renderer object for a specific OS release.
         configs = OSConfigRenderer(templates_dir='/tmp/templates',
                                    openstack_release='folsom')
@@ -185,30 +142,11 @@ class OSConfigRenderer(object):
         configs.register(config_file='/etc/nova/api-paste.ini',
                          contexts=[context.IdentityServiceContext()])
         configs.register(config_file='/etc/haproxy/haproxy.conf',
-                         contexts=[context.HAProxyContext(),
-                                   SimpleContextGenerator()])
+                         contexts=[context.HAProxyContext()])
         # write out a single config
         configs.write('/etc/nova/nova.conf')
         # write out all registered configs
         configs.write_all()
-
-    Using patterns::
-        class DashboardContextGenerator(OSPatternContextGenerator):
-            def __call__():
-                return {
-                    (40, 'router'): { 'DISABLED': True }
-                }
-
-        configs.register_pattern(
-            pattern='/usr/share/openstack-dashboard/openstack_dashboard'
-                    '/enabled/_{}_juju_{}.py',
-            contexts=[
-                DashboardContextGenerator()
-            ])
-        # delete all files matching the pattern and
-        # write _40_juju_router.py anew
-        configs.write('/usr/share/openstack-dashboard/openstack_dashboard'
-                      '/enabled/_{}_juju_{}.py')
 
     **OpenStack Releases and template loading**
 
@@ -281,15 +219,6 @@ class OSConfigRenderer(object):
                                                        contexts=contexts)
         log('Registered config file: %s' % config_file, level=INFO)
 
-    def register_pattern(self, pattern, contexts):
-        """
-        Register a config file name pattern with a list of context generators
-        to be called during rendering. Use standard format() specification.
-        """
-        self.templates[pattern] = OSPatternConfigTemplate(pattern=pattern,
-                                                          contexts=contexts)
-        log('Registered config pattern: %s' % pattern, level=INFO)
-
     def _get_tmpl_env(self):
         if not self._tmpl_env:
             loader = get_loader(self.templates_dir, self.openstack_release)
@@ -305,8 +234,7 @@ class OSConfigRenderer(object):
         if config_file not in self.templates:
             log('Config not registered: %s' % config_file, level=ERROR)
             raise OSConfigException
-        ostemplate = self.templates[config_file]
-        ctxt = ostemplate.context()
+        ctxt = self.templates[config_file].context()
 
         _tmpl = os.path.basename(config_file)
         try:
@@ -325,14 +253,7 @@ class OSConfigRenderer(object):
                 raise e
 
         log('Rendering from template: %s' % _tmpl, level=INFO)
-
-        if not isinstance(ostemplate, OSPatternConfigTemplate):
-            ctxt = {(): ctxt}
-
-        renders = {}
-        for args, file_ctxt in ctxt.items():
-            renders[args] = template.render(file_ctxt)
-        return renders
+        return template.render(ctxt)
 
     def write(self, config_file):
         """
@@ -342,16 +263,10 @@ class OSConfigRenderer(object):
             log('Config not registered: %s' % config_file, level=ERROR)
             raise OSConfigException
 
-        renders = self.render(config_file)
+        _out = self.render(config_file)
 
-        files = glob.glob(''.join([t[0] + ('' if t[1] is None else '*')
-                          for t in string.Formatter().parse(config_file)]))
-        for name in files:
-            os.unlink(name)
-
-        for args, render in renders.items():
-            with open(config_file.format(*args), 'wb') as out:
-                out.write(render)
+        with open(config_file, 'wb') as out:
+            out.write(_out)
 
         log('Wrote template %s.' % config_file, level=INFO)
 
