@@ -197,4 +197,3 @@ class LocalSettingsContext(OSContextGenerator):
                                     key=lambda r: r[1]['priority'])]
         }
         return ctxt
-
