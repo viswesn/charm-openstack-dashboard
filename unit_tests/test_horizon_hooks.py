@@ -135,8 +135,8 @@ class TestHorizonHooks(CharmTestCase):
     def test_upgrade_charm_hook(self, _git_requested, _service, _hash):
         _git_requested.return_value = False
         side_effects = []
-        [side_effects.append({}) for f in RESTART_MAP.keys()]
-        [side_effects.append({f: 'bar'}) for f in RESTART_MAP.keys()]
+        [side_effects.append(None) for f in RESTART_MAP.keys()]
+        [side_effects.append('bar') for f in RESTART_MAP.keys()]
         _hash.side_effect = side_effects
         self.filter_installed_packages.return_value = ['foo']
         self._call_hook('upgrade-charm')
