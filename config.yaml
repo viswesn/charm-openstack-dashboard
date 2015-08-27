@@ -7,9 +7,7 @@ options:
     type: boolean
     default: False
     description: |
-      By default, all services will log into their corresponding log
-      files. Setting this to True will force all services to log to the
-      syslog.
+      Setting this to True will allow supporting services to log to syslog.
   openstack-origin:
     default: distro
     type: string
@@ -18,17 +16,27 @@ options:
       distro (default), ppa:somecustom/ppa, a deb url sources entry,
       or a supported Cloud Archive release pocket.
 
-      Supported Cloud Archive sources include: cloud:precise-folsom,
-      cloud:precise-folsom/updates, cloud:precise-folsom/staging,
-      cloud:precise-folsom/proposed.
+      Supported Cloud Archive sources include:
 
-      Note that updating this setting to a source that is known to
-      provide a later version of OpenStack will trigger a software
-      upgrade.
+      cloud:<series>-<openstack-release>
+      cloud:<series>-<openstack-release>/updates
+      cloud:<series>-<openstack-release>/staging
+      cloud:<series>-<openstack-release>/proposed
 
-      Note that when openstack-origin-git is specified, openstack
-      specific packages will be installed from source rather than
-      from the openstack-origin repository.
+      For series=Precise we support cloud archives for openstack-release:
+         * icehouse
+
+      For series=Trusty we support cloud archives for openstack-release:
+         * juno
+         * kilo
+         * ...
+
+      NOTE: updating this setting to a source that is known to provide
+      a later version of OpenStack will trigger a software upgrade.
+
+      NOTE: when openstack-origin-git is specified, openstack specific
+      packages will be installed from source rather than from the
+      openstack-origin repository.
   openstack-origin-git:
     default:
     type: string
@@ -88,10 +96,9 @@ options:
     default:
     description: |
       Base64-encoded SSL certificate to install and use for Horizon.
-      .
-         juju set openstack-dashbaord ssl_cert="$(cat cert| base64)" \
-                                      ssl_key="$(cat key| base64)"
-      .
+
+       juju set openstack-dashbaord ssl_cert="$(cat cert| base64)" \
+                                    ssl_key="$(cat key| base64)"
   ssl_key:
     type: string
     default:
