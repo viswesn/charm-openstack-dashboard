@@ -59,21 +59,58 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
         """Configure all of the services."""
         horizon_config = {}
         if self.git:
-            branch = 'stable/' + self._get_openstack_release_string()
             amulet_http_proxy = os.environ.get('AMULET_HTTP_PROXY')
-            openstack_origin_git = {
-                'repositories': [
-                    {'name': 'requirements',
-                     'repository': 'git://git.openstack.org/openstack/requirements',
-                     'branch': branch},
-                    {'name': 'horizon',
-                     'repository': 'git://git.openstack.org/openstack/horizon',
-                     'branch': branch},
-                ],
-                'directory': '/mnt/openstack-git',
-                'http_proxy': amulet_http_proxy,
-                'https_proxy': amulet_http_proxy,
-            }
+
+            reqs_repo = 'git://github.com/openstack/requirements'
+            horizon_repo = 'git://github.com/openstack/horizon'
+            if self._get_openstack_release() == self.trusty_icehouse:
+                reqs_repo = 'git://github.com/coreycb/requirements'
+                horizon_repo = 'git://github.com/coreycb/horizon'
+
+            branch = 'stable/' + self._get_openstack_release_string()
+
+            if self._get_openstack_release() == self.trusty_juno:
+                openstack_origin_git = {
+                    'repositories': [
+                        {'name': 'requirements',
+                         'repository': reqs_repo,
+                         'branch': branch},
+                        # NOTE(coreycb): Pin oslo libraries here because they're not
+                        # capped and recently released versions causing issues for juno.
+                        {'name': 'oslo-config',
+                         'repository': 'git://github.com/openstack/oslo.config',
+                         'branch': '1.6.0'},
+                        {'name': 'oslo-i18n',
+                         'repository': 'git://github.com/openstack/oslo.i18n',
+                         'branch': '1.3.1'},
+                        {'name': 'oslo-serialization',
+                         'repository': 'git://github.com/openstack/oslo.serialization',
+                         'branch': '1.2.0'},
+                        {'name': 'oslo-utils',
+                         'repository': 'git://github.com/openstack/oslo.utils',
+                         'branch': '1.4.0'},
+                        {'name': 'horizon',
+                         'repository': horizon_repo,
+                         'branch': branch},
+                    ],
+                    'directory': '/mnt/openstack-git',
+                    'http_proxy': amulet_http_proxy,
+                    'https_proxy': amulet_http_proxy,
+                }
+            else:
+                openstack_origin_git = {
+                    'repositories': [
+                        {'name': 'requirements',
+                         'repository': reqs_repo,
+                         'branch': branch},
+                        {'name': 'horizon',
+                         'repository': horizon_repo,
+                         'branch': branch},
+                    ],
+                    'directory': '/mnt/openstack-git',
+                    'http_proxy': amulet_http_proxy,
+                    'https_proxy': amulet_http_proxy,
+                }
             horizon_config['openstack-origin-git'] = yaml.dump(openstack_origin_git)
 
         keystone_config = {'admin-password': 'openstack',
@@ -164,7 +201,7 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
         conf = '/etc/openstack-dashboard/local_settings.py'
         services = ['apache2']
         self.d.configure('openstack-dashboard', {'use-syslog': 'True'})
-        time = 40
+        time = 120
         for s in services:
             if not u.service_restarted(self.openstack_dashboard_sentry, s, conf,
                                        pgrep_full=True, sleep_time=time):
