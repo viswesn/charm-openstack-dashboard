@@ -5,7 +5,6 @@ import os
 import pwd
 import subprocess
 import shutil
-import string
 from collections import OrderedDict
 
 import charmhelpers.contrib.openstack.context as context
@@ -83,9 +82,6 @@ APACHE_SSL = "%s/sites-available/default-ssl" % (APACHE_CONF_DIR)
 APACHE_DEFAULT = "%s/sites-available/default" % (APACHE_CONF_DIR)
 ROUTER_SETTING = \
     "/usr/share/openstack-dashboard/openstack_dashboard/enabled/_40_router.py"
-PLUGIN_SETTINGS = \
-    "/usr/share/openstack-dashboard/openstack_dashboard/local/enabled" \
-    "/_{}_juju_{}.py"
 
 TEMPLATES = 'templates'
 
@@ -137,10 +133,6 @@ CONFIG_FILES = OrderedDict([
         'hook_contexts': [horizon_contexts.RouterSettingContext()],
         'services': ['apache2'],
     }),
-    (PLUGIN_SETTINGS, {
-        'hook_contexts': [horizon_contexts.PluginsContext()],
-        'services': ['apache2'],
-    }),
 ])
 
 
@@ -179,11 +171,6 @@ def register_configs():
     if os.path.exists(os.path.dirname(ROUTER_SETTING)):
         configs.register(ROUTER_SETTING,
                          CONFIG_FILES[ROUTER_SETTING]['hook_contexts'])
-
-    if os_release('openstack_dashboard') >= 'icehouse':
-        configs.register_pattern(PLUGIN_SETTINGS,
-                                 CONFIG_FILES[PLUGIN_SETTINGS]
-                                             ['hook_contexts'])
     return configs
 
 
@@ -201,10 +188,7 @@ def restart_map():
         for svc in ctxt['services']:
             svcs.append(svc)
         if svcs:
-            # replace all formatting in path with asterisks for glob
-            path = ''.join([t[0] + ('' if t[1] is None else '*')
-                           for t in string.Formatter().parse(f)])
-            _map.append((path, svcs))
+            _map.append((f, svcs))
     return OrderedDict(_map)
 
 

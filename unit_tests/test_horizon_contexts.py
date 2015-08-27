@@ -266,31 +266,3 @@ class TestHorizonContexts(CharmTestCase):
                                         'BAR = False',
                                         '# horizon-plugin/0\n'
                                         'FOO = True']})
-
-    def test_PluginsContext(self):
-        self.relation_ids.return_value = ['plugin:0', 'plugin-too:0']
-        self.related_units.side_effect = [['horizon-plugin/0'],
-                                          ['horizon-plugin-too/0']]
-        self.relation_get.side_effect = [
-            {
-                'priority': 99,
-                'plugin-file': 'DASHBOARD = \'some_dashboard\'\n'
-                               'DISABLED = True'},
-            {
-                'priority': 60,
-                'plugin-file': 'PANEL = \'some_panel\'\n'
-                               'PANEL_DASHBOARD = \'admin\'\n'
-                               'PANEL_GROUP = \'admin\'\n'
-                               'REMOVE_PANEL = True'}]
-
-        self.assertEquals(horizon_contexts.PluginsContext()(),
-                          {(99, 'horizon_plugin'): {
-                           'unit': 'horizon-plugin/0',
-                           'plugin_file': 'DASHBOARD = \'some_dashboard\'\n'
-                                          'DISABLED = True'},
-                           (60, 'horizon_plugin_too'): {
-                           'unit': 'horizon-plugin-too/0',
-                           'plugin_file': 'PANEL = \'some_panel\'\n'
-                                          'PANEL_DASHBOARD = \'admin\'\n'
-                                          'PANEL_GROUP = \'admin\'\n'
-                                          'REMOVE_PANEL = True'}})

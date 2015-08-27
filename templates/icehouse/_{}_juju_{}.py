@@ -1,2 +1,0 @@
-# {{ unit }}
-{{ plugin_file }}
