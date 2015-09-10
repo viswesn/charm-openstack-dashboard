@@ -91,6 +91,7 @@ APACHE_24_SSL = "%s/sites-available/default-ssl.conf" % (APACHE_CONF_DIR)
 APACHE_24_DEFAULT = "%s/sites-available/000-default.conf" % (APACHE_CONF_DIR)
 APACHE_SSL = "%s/sites-available/default-ssl" % (APACHE_CONF_DIR)
 APACHE_DEFAULT = "%s/sites-available/default" % (APACHE_CONF_DIR)
+INSTALL_DIR = "/usr/share/openstack-dashboard"
 ROUTER_SETTING = \
     "/usr/share/openstack-dashboard/openstack_dashboard/enabled/_40_router.py"
 

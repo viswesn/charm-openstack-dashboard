@@ -24,6 +24,7 @@ from charmhelpers.contrib.openstack.utils import (
     config_value_changed,
     configure_installation_source,
     git_install_requested,
+    git_pip_venv_dir,
     openstack_upgrade_available,
     os_release,
     save_script_rc
@@ -38,7 +39,8 @@ from horizon_utils import (
     do_openstack_upgrade,
     git_install,
     git_post_install_late,
-    setup_ipv6
+    setup_ipv6,
+    INSTALL_DIR
 )
 from charmhelpers.contrib.network.ip import (
     get_iface_for_address,
@@ -242,6 +244,17 @@ def update_nrpe_config():
             check_cmd='check_http %s' % check_http_params
         )
     nrpe_setup.write()
+
+
+@hooks.hook('dashboard-plugin-relation-joined')
+def update_dashboard_plugin(rel_id=None):
+    if git_install_requested():
+        bin_path = git_pip_venv_dir(config('openstack-origin-git'))
+    else:
+        bin_path = '/usr/bin'
+    relation_set(relation_id=rel_id,
+                 bin_path=bin_path,
+                 openstack_dir=INSTALL_DIR)
 
 
 def main():

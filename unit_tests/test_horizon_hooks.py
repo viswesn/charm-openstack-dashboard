@@ -308,6 +308,30 @@ class TestHorizonHooks(CharmTestCase):
         self._call_hook('website-relation-joined')
         self.relation_set.assert_called_with(port=70, hostname='192.168.1.1')
 
+    @patch.object(hooks, 'git_install_requested')
+    def test_dashboard_config_joined_not_git(self, _git_requested):
+        _git_requested.return_value = False
+        self._call_hook('dashboard-plugin-relation-joined')
+        self.relation_set.assert_called_with(
+            bin_path='/usr/bin',
+            openstack_dir='/usr/share/openstack-dashboard',
+            relation_id=None
+        )
+
+    @patch.object(hooks, 'git_pip_venv_dir')
+    @patch.object(hooks, 'git_install_requested')
+    def test_dashboard_config_joined_git(self, _git_requested,
+                                         _git_pip_venv_dir):
+        expected_bin_path = '/mnt/fuji/venv'
+        _git_requested.return_value = True
+        _git_pip_venv_dir.return_value = expected_bin_path
+        self._call_hook('dashboard-plugin-relation-joined')
+        self.relation_set.assert_called_with(
+            bin_path=expected_bin_path,
+            openstack_dir='/usr/share/openstack-dashboard',
+            relation_id=None
+        )
+
     @patch('sys.argv')
     @patch.object(hooks, 'install')
     def test_main_hook_exists(self, _install, _argv):
