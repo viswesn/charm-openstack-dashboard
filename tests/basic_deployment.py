@@ -130,14 +130,13 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
     def test_services(self):
         """Verify the expected services are running on the corresponding
            service units."""
-        dashboard_services = ['service apache2 status']
+        dashboard_services = ['apache2']
 
-        commands = {
-            self.keystone_sentry: ['status keystone'],
-            self.openstack_dashboard_sentry: dashboard_services
+        services = {
+            self.keystone_sentry: ['keystone'],
+            self.openstack_dashboard_sentry: dashboard_services,
         }
-
-        ret = u.validate_services(commands)
+        ret = u.validate_services_by_name(services)
         if ret:
             amulet.raise_status(amulet.FAIL, msg=ret)
 
