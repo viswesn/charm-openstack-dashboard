@@ -4,7 +4,7 @@ maintainer: Adam Gandelman <adamg@canonical.com>
 description: |
  The OpenStack Dashboard provides a full feature web interface for interacting
  with instances, images, volumes and networks within an OpenStack deployment.
-categories: ["misc"]
+tags: ["misc"]
 provides:
   nrpe-external-master:
     interface: nrpe-external-master
@@ -17,8 +17,8 @@ requires:
   ha:
     interface: hacluster
     scope: container
-  plugin:
-    interface: horizon-plugin
+  dashboard-plugin:
+    interface: dashboard-plugin
     scope: container
 peers:
   cluster:
