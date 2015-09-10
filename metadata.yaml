@@ -13,6 +13,8 @@ provides:
     scope: container
   website:
     interface: http
+  dashboard-plugin:
+    interface: dashboard-plugin
 requires:
   identity-service:
     interface: keystone
