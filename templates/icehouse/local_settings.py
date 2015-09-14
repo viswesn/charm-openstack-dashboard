@@ -212,8 +212,8 @@ IMAGE_CUSTOM_PROPERTY_TITLES = {
 # in the Keystone service catalog. Use this setting when Horizon is running
 # external to the OpenStack environment. The default is 'publicURL'.
 #OPENSTACK_ENDPOINT_TYPE = "publicURL"
-{% if public_endpoint -%}
-OPENSTACK_ENDPOINT_TYPE = {{ public_endpoint }}
+{% if primary_endpoint -%}
+OPENSTACK_ENDPOINT_TYPE = {{ primary_endpoint }}
 {% endif -%}
 
 # SECONDARY_ENDPOINT_TYPE specifies the fallback endpoint type to use in the
