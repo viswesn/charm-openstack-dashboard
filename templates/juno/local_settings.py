@@ -261,7 +261,7 @@ OPENSTACK_ENDPOINT_TYPE = {{ primary_endpoint }}
 # value should differ from OPENSTACK_ENDPOINT_TYPE if used.
 #SECONDARY_ENDPOINT_TYPE = "publicURL"
 {% if secondary_endpoint -%}
-SECONDARY_ENDPOLINT_TYPE = {{ secondary_endpoint }}
+SECONDARY_ENDPOINT_TYPE = {{ secondary_endpoint }}
 {% endif -%}
 
 # The number of objects (Swift containers/objects or images) to display
