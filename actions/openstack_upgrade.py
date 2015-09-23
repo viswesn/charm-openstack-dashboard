@@ -9,12 +9,12 @@ from charmhelpers.contrib.openstack.utils import (
 
 from horizon_utils import (
     do_openstack_upgrade,
-    register_configs
 )
 
-from horizon_hooks import config_changed
-
-CONFIGS = register_configs()
+from horizon_hooks import (
+    config_changed,
+    CONFIGS,
+)
 
 
 def openstack_upgrade():
