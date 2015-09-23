@@ -167,3 +167,5 @@ LOGIN_REDIRECT_URL='{{ webroot }}'
 # offline compression by default.  To enable online compression, install
 # the node-less package and enable the following option.
 COMPRESS_OFFLINE = {{ compress_offline }}
+
+{{ settings|join('\n\n') }}
