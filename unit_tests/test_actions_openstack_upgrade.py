@@ -12,7 +12,6 @@ from test_utils import (
 
 TO_PATCH = [
     'do_openstack_upgrade',
-    'register_configs',
     'config_changed',
 ]
 
