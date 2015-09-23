@@ -251,3 +251,18 @@ class TestHorizonContexts(CharmTestCase):
         self.test_config.set('profile', None)
         self.assertEquals(horizon_contexts.RouterSettingContext()(),
                           {'disable_router': True, })
+
+    def test_LocalSettingsContext(self):
+        self.relation_ids.return_value = ['plugin:0', 'plugin-too:0']
+        self.related_units.side_effect = [['horizon-plugin/0'],
+                                          ['horizon-plugin-too/0']]
+        self.relation_get.side_effect = [{'priority': 99,
+                                          'local-settings': 'FOO = True'},
+                                         {'priority': 60,
+                                          'local-settings': 'BAR = False'}]
+
+        self.assertEquals(horizon_contexts.LocalSettingsContext()(),
+                          {'settings': ['# horizon-plugin-too/0\n'
+                                        'BAR = False',
+                                        '# horizon-plugin/0\n'
+                                        'FOO = True']})

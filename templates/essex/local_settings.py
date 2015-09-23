@@ -118,3 +118,5 @@ LOGGING = {
             }
         }
 }
+
+{{ settings|join('\n\n') }}
