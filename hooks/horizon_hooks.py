@@ -104,7 +104,7 @@ def config_changed():
     if git_install_requested():
         if config_value_changed('openstack-origin-git'):
             git_install(config('openstack-origin-git'))
-    else:
+    elif not config('action-managed-upgrade'):
         if openstack_upgrade_available('openstack-dashboard'):
             do_openstack_upgrade(configs=CONFIGS)
 
