@@ -153,6 +153,14 @@ options:
       In order for this charm to function correctly, the privacy extension
       must be disabled and a non-temporary address must be
       configured/available on your network interface.
+  endpoint-type:
+    type: string
+    default:
+    description: |
+      Specifies the endpoint types to use for endpoints in the Keystone
+      service catalog. Valid values are 'publicURL', 'internalURL',
+      and 'adminURL'. Both the primary and secondary endpoint types can
+      be specified by providing multiple comma delimited values.
   nagios_context:
     default: "juju"
     type: string

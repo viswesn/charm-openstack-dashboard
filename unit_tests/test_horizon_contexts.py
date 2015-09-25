@@ -212,6 +212,22 @@ class TestHorizonContexts(CharmTestCase):
                                       {'endpoint': 'http://foo:5000/v2.0',
                                        'title': 'regionTwo'}]})
 
+    def test_IdentityServiceContext_endpoint_type(self):
+        self.test_config.set('endpoint-type', 'internalURL')
+        self.assertEqual(horizon_contexts.IdentityServiceContext()(),
+                         {'primary_endpoint': 'internalURL'})
+
+    def test_IdentityServiceContext_multi_endpoint_types(self):
+        self.test_config.set('endpoint-type', 'internalURL,publicURL')
+        self.assertEqual(horizon_contexts.IdentityServiceContext()(),
+                         {'primary_endpoint': 'internalURL',
+                          'secondary_endpoint': 'publicURL'})
+
+    def test_IdentityServiceContext_invalid_endpoint_type(self):
+        self.test_config.set('endpoint-type', 'this_is_bad')
+        with self.assertRaises(Exception):
+            horizon_contexts.IdentityServiceContext()()
+
     def test_HorizonHAProxyContext_no_cluster(self):
         self.relation_ids.return_value = []
         self.local_unit.return_value = 'openstack-dashboard/0'
