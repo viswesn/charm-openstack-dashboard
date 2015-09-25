@@ -6,7 +6,8 @@ from charmhelpers.core.hookenv import (
     relation_get,
     local_unit,
     unit_get,
-    log
+    log,
+    ERROR,
 )
 from charmhelpers.contrib.openstack.context import (
     OSContextGenerator,
@@ -27,6 +28,12 @@ from charmhelpers.core.host import pwgen
 
 from base64 import b64decode
 import os
+
+VALID_ENDPOINT_TYPES = {
+    'PUBLICURL': 'publicURL',
+    'INTERNALURL': 'internalURL',
+    'ADMINURL': 'adminURL',
+}
 
 
 class HorizonHAProxyContext(HAProxyContext):
@@ -69,6 +76,22 @@ class HorizonHAProxyContext(HAProxyContext):
 class IdentityServiceContext(OSContextGenerator):
     interfaces = ['identity-service']
 
+    def normalize(self, endpoint_type):
+        """Normalizes the endpoint type values.
+
+        :param endpoint_type (string): the endpoint type to normalize.
+        :raises: Exception if the endpoint type is not valid.
+        :return (string): the normalized form of the endpoint type.
+        """
+        normalized_form = VALID_ENDPOINT_TYPES.get(endpoint_type.upper(), None)
+        if not normalized_form:
+            msg = ('Endpoint type specified %s is not a valid'
+                   ' endpoint type' % endpoint_type)
+            log(msg, ERROR)
+            raise Exception(msg)
+
+        return normalized_form
+
     def __call__(self):
         log('Generating template context for identity-service')
         ctxt = {}
@@ -106,6 +129,21 @@ class IdentityServiceContext(OSContextGenerator):
             avail_regions = map(lambda r: {'endpoint': r[0], 'title': r[1]},
                                 regions)
             ctxt['regions'] = sorted(avail_regions)
+
+        # Allow the endpoint types to be specified via a config parameter.
+        # The config parameter accepts either:
+        #  1. a single endpoint type to be specified, in which case the
+        #     primary endpoint is configured
+        #  2. a list of endpoint types, in which case the primary endpoint
+        #     is taken as the first entry and the secondary endpoint is
+        #     taken as the second entry. All subsequent entries are ignored.
+        ep_types = config('endpoint-type')
+        if ep_types:
+            ep_types = [self.normalize(e) for e in ep_types.split(',')]
+            ctxt['primary_endpoint'] = ep_types[0]
+            if len(ep_types) > 1:
+                ctxt['secondary_endpoint'] = ep_types[1]
+
         return ctxt
 
 
