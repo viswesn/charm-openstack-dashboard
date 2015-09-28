@@ -101,7 +101,8 @@ CONFIG_FILES = OrderedDict([
     (LOCAL_SETTINGS, {
         'hook_contexts': [horizon_contexts.HorizonContext(),
                           horizon_contexts.IdentityServiceContext(),
-                          context.SyslogContext()],
+                          context.SyslogContext(),
+                          horizon_contexts.LocalSettingsContext()],
         'services': ['apache2']
     }),
     (APACHE_CONF, {
@@ -262,12 +263,12 @@ def setup_ipv6():
         raise Exception("IPv6 is not supported in the charms for Ubuntu "
                         "versions less than Trusty 14.04")
 
-    # NOTE(xianghui): Need to install haproxy(1.5.3) from trusty-backports
-    # to support ipv6 address, so check is required to make sure not
-    # breaking other versions, IPv6 only support for >= Trusty
-    if ubuntu_rel == 'trusty':
-        add_source('deb http://archive.ubuntu.com/ubuntu trusty-backports'
-                   ' main')
+    # Need haproxy >= 1.5.3 for ipv6 so for Trusty if we are <= Kilo we need to
+    # use trusty-backports otherwise we can use the UCA.
+    os_pkg = 'openstack-dashboard'
+    if ubuntu_rel == 'trusty' and os_release(os_pkg) < 'liberty':
+        add_source('deb http://archive.ubuntu.com/ubuntu trusty-backports '
+                   'main')
         apt_update()
         apt_install('haproxy/trusty-backports', fatal=True)
 
