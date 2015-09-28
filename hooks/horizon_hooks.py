@@ -58,7 +58,7 @@ hooks = Hooks()
 CONFIGS = register_configs()
 
 
-@hooks.hook('install')
+@hooks.hook('install.real')
 def install():
     execd_preinstall()
     configure_installation_source(config('openstack-origin'))
@@ -106,7 +106,7 @@ def config_changed():
     if git_install_requested():
         if config_value_changed('openstack-origin-git'):
             git_install(config('openstack-origin-git'))
-    else:
+    elif not config('action-managed-upgrade'):
         if openstack_upgrade_available('openstack-dashboard'):
             do_openstack_upgrade(configs=CONFIGS)
 
@@ -247,14 +247,21 @@ def update_nrpe_config():
 
 
 @hooks.hook('dashboard-plugin-relation-joined')
-def update_dashboard_plugin(rel_id=None):
+def plugin_relation_joined(rel_id=None):
     if git_install_requested():
         bin_path = git_pip_venv_dir(config('openstack-origin-git'))
     else:
         bin_path = '/usr/bin'
-    relation_set(relation_id=rel_id,
+    relation_set(release=os_release("openstack-dashboard"),
+                 relation_id=rel_id,
                  bin_path=bin_path,
                  openstack_dir=INSTALL_DIR)
+
+
+@hooks.hook('dashboard-plugin-relation-changed')
+@restart_on_change(restart_map())
+def update_plugin_config():
+    CONFIGS.write(LOCAL_SETTINGS)
 
 
 def main():

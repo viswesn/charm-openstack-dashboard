@@ -212,6 +212,22 @@ class TestHorizonContexts(CharmTestCase):
                                       {'endpoint': 'http://foo:5000/v2.0',
                                        'title': 'regionTwo'}]})
 
+    def test_IdentityServiceContext_endpoint_type(self):
+        self.test_config.set('endpoint-type', 'internalURL')
+        self.assertEqual(horizon_contexts.IdentityServiceContext()(),
+                         {'primary_endpoint': 'internalURL'})
+
+    def test_IdentityServiceContext_multi_endpoint_types(self):
+        self.test_config.set('endpoint-type', 'internalURL,publicURL')
+        self.assertEqual(horizon_contexts.IdentityServiceContext()(),
+                         {'primary_endpoint': 'internalURL',
+                          'secondary_endpoint': 'publicURL'})
+
+    def test_IdentityServiceContext_invalid_endpoint_type(self):
+        self.test_config.set('endpoint-type', 'this_is_bad')
+        with self.assertRaises(Exception):
+            horizon_contexts.IdentityServiceContext()()
+
     def test_HorizonHAProxyContext_no_cluster(self):
         self.relation_ids.return_value = []
         self.local_unit.return_value = 'openstack-dashboard/0'
@@ -251,3 +267,18 @@ class TestHorizonContexts(CharmTestCase):
         self.test_config.set('profile', None)
         self.assertEquals(horizon_contexts.RouterSettingContext()(),
                           {'disable_router': True, })
+
+    def test_LocalSettingsContext(self):
+        self.relation_ids.return_value = ['plugin:0', 'plugin-too:0']
+        self.related_units.side_effect = [['horizon-plugin/0'],
+                                          ['horizon-plugin-too/0']]
+        self.relation_get.side_effect = [{'priority': 99,
+                                          'local-settings': 'FOO = True'},
+                                         {'priority': 60,
+                                          'local-settings': 'BAR = False'}]
+
+        self.assertEquals(horizon_contexts.LocalSettingsContext()(),
+                          {'settings': ['# horizon-plugin-too/0\n'
+                                        'BAR = False',
+                                        '# horizon-plugin/0\n'
+                                        'FOO = True']})
