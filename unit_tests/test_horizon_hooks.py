@@ -308,25 +308,32 @@ class TestHorizonHooks(CharmTestCase):
         self._call_hook('website-relation-joined')
         self.relation_set.assert_called_with(port=70, hostname='192.168.1.1')
 
+    @patch.object(hooks, 'os_release')
     @patch.object(hooks, 'git_install_requested')
-    def test_dashboard_config_joined_not_git(self, _git_requested):
+    def test_dashboard_config_joined_not_git(
+            self, _git_requested, _os_release):
         _git_requested.return_value = False
+        _os_release.return_value = 'vivid'
         self._call_hook('dashboard-plugin-relation-joined')
         self.relation_set.assert_called_with(
+            release='vivid',
             bin_path='/usr/bin',
             openstack_dir='/usr/share/openstack-dashboard',
             relation_id=None
         )
 
+    @patch.object(hooks, 'os_release')
     @patch.object(hooks, 'git_pip_venv_dir')
     @patch.object(hooks, 'git_install_requested')
-    def test_dashboard_config_joined_git(self, _git_requested,
-                                         _git_pip_venv_dir):
+    def test_dashboard_config_joined_git(
+            self, _git_requested, _git_pip_venv_dir, _os_release):
         expected_bin_path = '/mnt/fuji/venv'
         _git_requested.return_value = True
         _git_pip_venv_dir.return_value = expected_bin_path
+        _os_release.return_value = 'wily'
         self._call_hook('dashboard-plugin-relation-joined')
         self.relation_set.assert_called_with(
+            release='wily',
             bin_path=expected_bin_path,
             openstack_dir='/usr/share/openstack-dashboard',
             relation_id=None
