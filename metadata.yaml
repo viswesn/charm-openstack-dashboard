@@ -21,9 +21,6 @@ requires:
   ha:
     interface: hacluster
     scope: container
-  dashboard-plugin:
-    interface: dashboard-plugin
-    scope: container
 peers:
   cluster:
     interface: openstack-dashboard-ha
