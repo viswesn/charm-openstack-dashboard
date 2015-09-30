@@ -15,6 +15,7 @@ provides:
     interface: http
   dashboard-plugin:
     interface: dashboard-plugin
+    scope: container
 requires:
   identity-service:
     interface: keystone
