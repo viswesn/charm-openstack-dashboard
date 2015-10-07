@@ -9,11 +9,10 @@ lint:
 test:
 	@# Bundletester expects unit tests here.
 	@echo Starting tests...
-	@$(PYTHON) /usr/bin/nosetests --nologcapture --with-coverage unit_tests
+	@$(PYTHON) /usr/bin/nosetests -v --nologcapture --with-coverage unit_tests
 
 functional_test:
 	@echo Starting Amulet tests...
-	#   https://bugs.launchpad.net/amulet/+bug/1320357
 	@juju test -v -p AMULET_HTTP_PROXY,AMULET_OS_VIP --timeout 2700
 
 bin/charm_helpers_sync.py:
