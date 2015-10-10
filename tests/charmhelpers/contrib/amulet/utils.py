@@ -19,9 +19,11 @@ import json
 import logging
 import os
 import re
+import socket
 import subprocess
 import sys
 import time
+import uuid
 
 import amulet
 import distro_info
@@ -324,7 +326,7 @@ class AmuletUtils(object):
 
     def service_restarted_since(self, sentry_unit, mtime, service,
                                 pgrep_full=None, sleep_time=20,
-                                retry_count=2, retry_sleep_time=30):
+                                retry_count=30, retry_sleep_time=10):
         """Check if service was been started after a given time.
 
         Args:
@@ -332,8 +334,9 @@ class AmuletUtils(object):
           mtime (float): The epoch time to check against
           service (string): service name to look for in process table
           pgrep_full: [Deprecated] Use full command line search mode with pgrep
-          sleep_time (int): Seconds to sleep before looking for process
-          retry_count (int): If service is not found, how many times to retry
+          sleep_time (int): Initial sleep time (s) before looking for file
+          retry_sleep_time (int): Time (s) to sleep between retries
+          retry_count (int): If file is not found, how many times to retry
 
         Returns:
           bool: True if service found and its start time it newer than mtime,
@@ -357,11 +360,12 @@ class AmuletUtils(object):
                                                             pgrep_full)
                 self.log.debug('Attempt {} to get {} proc start time on {} '
                                'OK'.format(tries, service, unit_name))
-            except IOError:
+            except IOError as e:
                 # NOTE(beisner) - race avoidance, proc may not exist yet.
                 # https://bugs.launchpad.net/charm-helpers/+bug/1474030
                 self.log.debug('Attempt {} to get {} proc start time on {} '
-                               'failed'.format(tries, service, unit_name))
+                               'failed\n{}'.format(tries, service,
+                                                   unit_name, e))
                 time.sleep(retry_sleep_time)
                 tries += 1
 
@@ -381,38 +385,62 @@ class AmuletUtils(object):
             return False
 
     def config_updated_since(self, sentry_unit, filename, mtime,
-                             sleep_time=20):
+                             sleep_time=20, retry_count=30,
+                             retry_sleep_time=10):
         """Check if file was modified after a given time.
 
         Args:
           sentry_unit (sentry): The sentry unit to check the file mtime on
           filename (string): The file to check mtime of
           mtime (float): The epoch time to check against
-          sleep_time (int): Seconds to sleep before looking for process
+          sleep_time (int): Initial sleep time (s) before looking for file
+          retry_sleep_time (int): Time (s) to sleep between retries
+          retry_count (int): If file is not found, how many times to retry
 
         Returns:
           bool: True if file was modified more recently than mtime, False if
-                file was modified before mtime,
+                file was modified before mtime, or if file not found.
         """
-        self.log.debug('Checking that %s file updated since '
-                       '%s' % (filename, mtime))
         unit_name = sentry_unit.info['unit_name']
+        self.log.debug('Checking that %s updated since %s on '
+                       '%s' % (filename, mtime, unit_name))
         time.sleep(sleep_time)
-        file_mtime = self._get_file_mtime(sentry_unit, filename)
+        file_mtime = None
+        tries = 0
+        while tries <= retry_count and not file_mtime:
+            try:
+                file_mtime = self._get_file_mtime(sentry_unit, filename)
+                self.log.debug('Attempt {} to get {} file mtime on {} '
+                               'OK'.format(tries, filename, unit_name))
+            except IOError as e:
+                # NOTE(beisner) - race avoidance, file may not exist yet.
+                # https://bugs.launchpad.net/charm-helpers/+bug/1474030
+                self.log.debug('Attempt {} to get {} file mtime on {} '
+                               'failed\n{}'.format(tries, filename,
+                                                   unit_name, e))
+                time.sleep(retry_sleep_time)
+                tries += 1
+
+        if not file_mtime:
+            self.log.warn('Could not determine file mtime, assuming '
+                          'file does not exist')
+            return False
+
         if file_mtime >= mtime:
             self.log.debug('File mtime is newer than provided mtime '
-                           '(%s >= %s) on %s (OK)' % (file_mtime, mtime,
-                                                      unit_name))
+                           '(%s >= %s) on %s (OK)' % (file_mtime,
+                                                      mtime, unit_name))
             return True
         else:
-            self.log.warn('File mtime %s is older than provided mtime %s'
-                          % (file_mtime, mtime))
+            self.log.warn('File mtime is older than provided mtime'
+                          '(%s < on %s) on %s' % (file_mtime,
+                                                  mtime, unit_name))
             return False
 
     def validate_service_config_changed(self, sentry_unit, mtime, service,
                                         filename, pgrep_full=None,
-                                        sleep_time=20, retry_count=2,
-                                        retry_sleep_time=30):
+                                        sleep_time=20, retry_count=30,
+                                        retry_sleep_time=10):
         """Check service and file were updated after mtime
 
         Args:
@@ -457,7 +485,9 @@ class AmuletUtils(object):
             sentry_unit,
             filename,
             mtime,
-            sleep_time=0)
+            sleep_time=sleep_time,
+            retry_count=retry_count,
+            retry_sleep_time=retry_sleep_time)
 
         return service_restart and config_update
 
@@ -476,7 +506,6 @@ class AmuletUtils(object):
         """Return a list of all Ubuntu releases in order of release."""
         _d = distro_info.UbuntuDistroInfo()
         _release_list = _d.all
-        self.log.debug('Ubuntu release list: {}'.format(_release_list))
         return _release_list
 
     def file_to_url(self, file_rel_path):
@@ -616,6 +645,142 @@ class AmuletUtils(object):
 
         return None
 
+    def validate_sectionless_conf(self, file_contents, expected):
+        """A crude conf parser.  Useful to inspect configuration files which
+        do not have section headers (as would be necessary in order to use
+        the configparser).  Such as openstack-dashboard or rabbitmq confs."""
+        for line in file_contents.split('\n'):
+            if '=' in line:
+                args = line.split('=')
+                if len(args) <= 1:
+                    continue
+                key = args[0].strip()
+                value = args[1].strip()
+                if key in expected.keys():
+                    if expected[key] != value:
+                        msg = ('Config mismatch.  Expected, actual:  {}, '
+                               '{}'.format(expected[key], value))
+                        amulet.raise_status(amulet.FAIL, msg=msg)
+
+    def get_unit_hostnames(self, units):
+        """Return a dict of juju unit names to hostnames."""
+        host_names = {}
+        for unit in units:
+            host_names[unit.info['unit_name']] = \
+                str(unit.file_contents('/etc/hostname').strip())
+        self.log.debug('Unit host names: {}'.format(host_names))
+        return host_names
+
+    def run_cmd_unit(self, sentry_unit, cmd):
+        """Run a command on a unit, return the output and exit code."""
+        output, code = sentry_unit.run(cmd)
+        if code == 0:
+            self.log.debug('{} `{}` command returned {} '
+                           '(OK)'.format(sentry_unit.info['unit_name'],
+                                         cmd, code))
+        else:
+            msg = ('{} `{}` command returned {} '
+                   '{}'.format(sentry_unit.info['unit_name'],
+                               cmd, code, output))
+            amulet.raise_status(amulet.FAIL, msg=msg)
+        return str(output), code
+
+    def file_exists_on_unit(self, sentry_unit, file_name):
+        """Check if a file exists on a unit."""
+        try:
+            sentry_unit.file_stat(file_name)
+            return True
+        except IOError:
+            return False
+        except Exception as e:
+            msg = 'Error checking file {}: {}'.format(file_name, e)
+            amulet.raise_status(amulet.FAIL, msg=msg)
+
+    def file_contents_safe(self, sentry_unit, file_name,
+                           max_wait=60, fatal=False):
+        """Get file contents from a sentry unit.  Wrap amulet file_contents
+        with retry logic to address races where a file checks as existing,
+        but no longer exists by the time file_contents is called.
+        Return None if file not found. Optionally raise if fatal is True."""
+        unit_name = sentry_unit.info['unit_name']
+        file_contents = False
+        tries = 0
+        while not file_contents and tries < (max_wait / 4):
+            try:
+                file_contents = sentry_unit.file_contents(file_name)
+            except IOError:
+                self.log.debug('Attempt {} to open file {} from {} '
+                               'failed'.format(tries, file_name,
+                                               unit_name))
+                time.sleep(4)
+                tries += 1
+
+        if file_contents:
+            return file_contents
+        elif not fatal:
+            return None
+        elif fatal:
+            msg = 'Failed to get file contents from unit.'
+            amulet.raise_status(amulet.FAIL, msg)
+
+    def port_knock_tcp(self, host="localhost", port=22, timeout=15):
+        """Open a TCP socket to check for a listening sevice on a host.
+
+        :param host: host name or IP address, default to localhost
+        :param port: TCP port number, default to 22
+        :param timeout: Connect timeout, default to 15 seconds
+        :returns: True if successful, False if connect failed
+        """
+
+        # Resolve host name if possible
+        try:
+            connect_host = socket.gethostbyname(host)
+            host_human = "{} ({})".format(connect_host, host)
+        except socket.error as e:
+            self.log.warn('Unable to resolve address: '
+                          '{} ({}) Trying anyway!'.format(host, e))
+            connect_host = host
+            host_human = connect_host
+
+        # Attempt socket connection
+        try:
+            knock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            knock.settimeout(timeout)
+            knock.connect((connect_host, port))
+            knock.close()
+            self.log.debug('Socket connect OK for host '
+                           '{} on port {}.'.format(host_human, port))
+            return True
+        except socket.error as e:
+            self.log.debug('Socket connect FAIL for'
+                           ' {} port {} ({})'.format(host_human, port, e))
+            return False
+
+    def port_knock_units(self, sentry_units, port=22,
+                         timeout=15, expect_success=True):
+        """Open a TCP socket to check for a listening sevice on each
+        listed juju unit.
+
+        :param sentry_units: list of sentry unit pointers
+        :param port: TCP port number, default to 22
+        :param timeout: Connect timeout, default to 15 seconds
+        :expect_success: True by default, set False to invert logic
+        :returns: None if successful, Failure message otherwise
+        """
+        for unit in sentry_units:
+            host = unit.info['public-address']
+            connected = self.port_knock_tcp(host, port, timeout)
+            if not connected and expect_success:
+                return 'Socket connect failed.'
+            elif connected and not expect_success:
+                return 'Socket connected unexpectedly.'
+
+    def get_uuid_epoch_stamp(self):
+        """Returns a stamp string based on uuid4 and epoch time.  Useful in
+        generating test messages which need to be unique-ish."""
+        return '[{}-{}]'.format(uuid.uuid4(), time.time())
+
+# amulet juju action helpers:
     def run_action(self, unit_sentry, action,
                    _check_output=subprocess.check_output):
         """Run the named action on a given unit sentry.
@@ -642,3 +807,12 @@ class AmuletUtils(object):
         output = _check_output(command, universal_newlines=True)
         data = json.loads(output)
         return data.get(u"status") == "completed"
+
+    def status_get(self, unit):
+        """Return the current service status of this unit."""
+        raw_status, return_code = unit.run(
+            "status-get --format=json --include-data")
+        if return_code != 0:
+            return ("unknown", "")
+        status = json.loads(raw_status)
+        return (status["status"], status["message"])
