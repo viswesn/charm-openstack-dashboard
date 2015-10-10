@@ -37,6 +37,7 @@ TO_PATCH = [
     'git_post_install_late',
     'update_nrpe_config',
     'lsb_release',
+    'status_set',
 ]
 
 
@@ -85,23 +86,23 @@ class TestHorizonHooks(CharmTestCase):
     def test_install_hook_icehouse_pkgs(self, _git_requested):
         _git_requested.return_value = False
         self.os_release.return_value = 'icehouse'
-        self._call_hook('install')
+        self._call_hook('install.real')
         for pkg in ['nodejs', 'node-less']:
             self.assertFalse(
                 pkg in self.filter_installed_packages.call_args[0][0]
             )
-        self.apt_install.assert_called()
+        self.assertTrue(self.apt_install.called)
 
     @patch.object(utils, 'git_install_requested')
     def test_install_hook_pre_icehouse_pkgs(self, _git_requested):
         _git_requested.return_value = False
         self.os_release.return_value = 'grizzly'
-        self._call_hook('install')
+        self._call_hook('install.real')
         for pkg in ['nodejs', 'node-less']:
             self.assertTrue(
                 pkg in self.filter_installed_packages.call_args[0][0]
             )
-        self.apt_install.assert_called()
+        self.assertTrue(self.apt_install.called)
 
     @patch.object(utils, 'git_install_requested')
     def test_install_hook_git(self, _git_requested):
@@ -141,7 +142,7 @@ class TestHorizonHooks(CharmTestCase):
         self.filter_installed_packages.return_value = ['foo']
         self._call_hook('upgrade-charm')
         self.apt_install.assert_called_with(['foo'], fatal=True)
-        self.CONFIGS.write_all.assert_called()
+        self.assertTrue(self.CONFIGS.write_all.called)
         ex = [
             call('restart', 'apache2'),
             call('restart', 'haproxy')
@@ -224,10 +225,10 @@ class TestHorizonHooks(CharmTestCase):
         self.openstack_upgrade_available.assert_called_with(
             'openstack-dashboard'
         )
-        self.enable_ssl.assert_called()
+        self.assertTrue(self.enable_ssl.called)
         self.do_openstack_upgrade.assert_not_called()
-        self.save_script_rc.assert_called()
-        self.CONFIGS.write_all.assert_called()
+        self.assertTrue(self.save_script_rc.called)
+        self.assertTrue(self.CONFIGS.write_all.called)
         self.open_port.assert_has_calls([call(80), call(443)])
 
     @patch.object(hooks, 'git_install_requested')
@@ -237,7 +238,7 @@ class TestHorizonHooks(CharmTestCase):
         self.test_config.set('openstack-origin', 'cloud:precise-grizzly')
         self.openstack_upgrade_available.return_value = True
         self._call_hook('config-changed')
-        self.do_openstack_upgrade.assert_called()
+        self.assertTrue(self.do_openstack_upgrade.called)
 
     @patch.object(hooks, 'git_install_requested')
     @patch.object(hooks, 'config_value_changed')
@@ -338,16 +339,3 @@ class TestHorizonHooks(CharmTestCase):
             openstack_dir='/usr/share/openstack-dashboard',
             relation_id=None
         )
-
-    @patch('sys.argv')
-    @patch.object(hooks, 'install')
-    def test_main_hook_exists(self, _install, _argv):
-        _argv = ['hooks/install']  # NOQA
-        hooks.main()
-        _install.assert_called()
-
-    @patch('sys.argv')
-    def test_main_hook_missing(self, _argv):
-        _argv = ['hooks/start']  # NOQA
-        hooks.main()
-        self.log.assert_called()
