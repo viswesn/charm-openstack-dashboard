@@ -76,7 +76,7 @@ def install():
     packages = filter_installed_packages(packages)
     if packages:
         status_set('maintenance', 'Installing packages')
-        apt_install(filter_installed_packages(packages), fatal=True)
+        apt_install(packages, fatal=True)
 
     git_install(config('openstack-origin-git'))
 
@@ -272,6 +272,7 @@ def update_plugin_config():
 
 
 def main():
+    print sys.argv
     try:
         hooks.execute(sys.argv)
     except UnregisteredHookError as e:

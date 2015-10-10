@@ -239,7 +239,7 @@ class TestHorizonContexts(CharmTestCase):
                                                  'dash_secure': [443, 433]},
                                'prefer_ipv6': False})
             _open.assert_called_with('/etc/default/haproxy', 'w')
-            _file.write.assert_called()
+            self.assertTrue(_file.write.called)
 
     def test_HorizonHAProxyContext_clustered(self):
         self.relation_ids.return_value = ['cluster:0']
@@ -258,7 +258,7 @@ class TestHorizonContexts(CharmTestCase):
                                                  'dash_secure': [443, 433]},
                                'prefer_ipv6': False})
             _open.assert_called_with('/etc/default/haproxy', 'w')
-            _file.write.assert_called()
+            self.assertTrue(_file.write.called)
 
     def test_RouterSettingContext(self):
         self.test_config.set('profile', 'cisco')
