@@ -72,6 +72,9 @@ BASE_GIT_PACKAGES = [
     'zlib1g-dev',
 ]
 
+REQUIRED_INTERFACES = {
+    'identity': ['identity-service'],
+}
 # ubuntu packages that should not be installed when deploying from git
 GIT_PACKAGE_BLACKLIST = [
     'openstack-dashboard',

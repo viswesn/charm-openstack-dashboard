@@ -10,7 +10,8 @@ from charmhelpers.core.hookenv import (
     relation_set,
     relation_get,
     relation_ids,
-    unit_get
+    unit_get,
+    status_set,
 )
 from charmhelpers.fetch import (
     apt_update, apt_install,
@@ -27,7 +28,8 @@ from charmhelpers.contrib.openstack.utils import (
     git_pip_venv_dir,
     openstack_upgrade_available,
     os_release,
-    save_script_rc
+    save_script_rc,
+    set_os_workload_status,
 )
 from horizon_utils import (
     determine_packages,
@@ -40,7 +42,8 @@ from horizon_utils import (
     git_install,
     git_post_install_late,
     setup_ipv6,
-    INSTALL_DIR
+    INSTALL_DIR,
+    REQUIRED_INTERFACES,
 )
 from charmhelpers.contrib.network.ip import (
     get_iface_for_address,
@@ -70,7 +73,10 @@ def install():
     if lsb_release()['DISTRIB_CODENAME'] == 'precise':
         # Explicitly upgrade python-six Bug#1420708
         apt_install('python-six', fatal=True)
-    apt_install(filter_installed_packages(packages), fatal=True)
+    packages = filter_installed_packages(packages)
+    if packages:
+        status_set('maintenance', 'Installing packages')
+        apt_install(filter_installed_packages(packages), fatal=True)
 
     git_install(config('openstack-origin-git'))
 
@@ -108,6 +114,7 @@ def config_changed():
             git_install(config('openstack-origin-git'))
     elif not config('action-managed-upgrade'):
         if openstack_upgrade_available('openstack-dashboard'):
+            status_set('maintenance', 'Upgrading to new OpenStack release')
             do_openstack_upgrade(configs=CONFIGS)
 
     env_vars = {
@@ -269,6 +276,7 @@ def main():
         hooks.execute(sys.argv)
     except UnregisteredHookError as e:
         log('Unknown hook {} - skipping.'.format(e))
+    set_os_workload_status(CONFIGS, REQUIRED_INTERFACES)
 
 
 if __name__ == '__main__':
