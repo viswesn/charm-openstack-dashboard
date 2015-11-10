@@ -251,7 +251,7 @@ IMAGE_RESERVED_CUSTOM_PROPERTIES = []
 # external to the OpenStack environment. The default is 'publicURL'.
 #OPENSTACK_ENDPOINT_TYPE = "publicURL"
 {% if primary_endpoint -%}
-OPENSTACK_ENDPOINT_TYPE = {{ primary_endpoint }}
+OPENSTACK_ENDPOINT_TYPE = "{{ primary_endpoint }}"
 {% endif -%}
 
 # SECONDARY_ENDPOINT_TYPE specifies the fallback endpoint type to use in the
@@ -261,7 +261,7 @@ OPENSTACK_ENDPOINT_TYPE = {{ primary_endpoint }}
 # value should differ from OPENSTACK_ENDPOINT_TYPE if used.
 #SECONDARY_ENDPOINT_TYPE = "publicURL"
 {% if secondary_endpoint -%}
-SECONDARY_ENDPOINT_TYPE = {{ secondary_endpoint }}
+SECONDARY_ENDPOINT_TYPE = "{{ secondary_endpoint }}"
 {% endif -%}
 
 # The number of objects (Swift containers/objects or images) to display
