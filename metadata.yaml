@@ -1,6 +1,6 @@
 name: openstack-dashboard
-summary: a Django web interface to OpenStack
-maintainer: Adam Gandelman <adamg@canonical.com>
+summary: Web dashboard for OpenStack
+maintainer: OpenStack Charmers <openstack-charmers@lists.ubuntu.com>
 description: |
  The OpenStack Dashboard provides a full feature web interface for interacting
  with instances, images, volumes and networks within an OpenStack deployment.
