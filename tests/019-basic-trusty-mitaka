@@ -1,11 +1,11 @@
 #!/usr/bin/python
 
-"""Amulet tests on a basic openstack-dashboard deployment on trusty-liberty."""
+"""Amulet tests on a basic openstack-dashboard deployment on trusty-mitaka."""
 
 from basic_deployment import OpenstackDashboardBasicDeployment
 
 if __name__ == '__main__':
     deployment = OpenstackDashboardBasicDeployment(series='trusty',
-                                                   openstack='cloud:trusty-liberty',
-                                                   source='cloud:trusty-updates/liberty')
+                                                   openstack='cloud:trusty-mitaka',
+                                                   source='cloud:trusty-updates/mitaka')
     deployment.run_tests()
