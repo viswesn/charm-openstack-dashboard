@@ -2,7 +2,6 @@
 
 import amulet
 import os
-import time
 import urllib2
 import yaml
 
