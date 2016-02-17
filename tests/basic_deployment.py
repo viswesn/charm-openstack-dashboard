@@ -2,7 +2,6 @@
 
 import amulet
 import os
-import time
 import urllib2
 import yaml
 
@@ -35,6 +34,13 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
         self._add_relations()
         self._configure_services()
         self._deploy()
+
+        u.log.info('Waiting on extended status checks...')
+        exclude_services = ['mysql']
+
+        # Wait for deployment ready msgs, except exclusions
+        self._auto_wait_for_status(exclude_services=exclude_services)
+
         self._initialize_tests()
 
     def _add_services(self):
@@ -139,8 +145,6 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
             self._get_openstack_release()))
         u.log.debug('openstack release str: {}'.format(
             self._get_openstack_release_string()))
-        # Let things settle a bit before moving forward
-        time.sleep(30)
 
     # NOTE(beisner): Switch to helper once the rabbitmq test refactor lands.
     def crude_py_parse(self, file_contents, expected):
