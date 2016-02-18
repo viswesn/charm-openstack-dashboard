@@ -141,7 +141,10 @@ CONFIG_FILES = OrderedDict([
         'services': ['apache2'],
     }),
     (HAPROXY_CONF, {
-        'hook_contexts': [horizon_contexts.HorizonHAProxyContext(singlenode_mode=True)],
+        'hook_contexts': [
+            horizon_contexts.HorizonHAProxyContext(),
+            context.HAProxyContext(singlenode_mode=True),
+        ],
         'services': ['haproxy'],
     }),
     (ROUTER_SETTING, {

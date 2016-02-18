@@ -60,15 +60,14 @@ class HorizonHAProxyContext(HAProxyContext):
         with open('/etc/default/haproxy', 'w') as out:
             out.write('ENABLED=1\n')
 
-        ctxt = super(HorizonHAProxyContext, self).__call__()
-        ctxt.update({
+        ctxt = {
             'units': cluster_hosts,
             'service_ports': {
                 'dash_insecure': [80, 70],
                 'dash_secure': [443, 433]
             },
             'prefer_ipv6': config('prefer-ipv6')
-        })
+        }
         return ctxt
 
 
