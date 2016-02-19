@@ -217,4 +217,3 @@ options:
     description: |
        Connect timeout configuration in ms for haproxy, used in HA
        configurations. If not provided, default value of 5000ms is used.
-
