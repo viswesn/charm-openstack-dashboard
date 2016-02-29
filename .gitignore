@@ -3,3 +3,4 @@ bin
 tags
 .testrepository
 .tox
+*.sw[nop]
