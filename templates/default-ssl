@@ -28,6 +28,8 @@
         CustomLog ${APACHE_LOG_DIR}/ssl_access.log combined
 
         SSLEngine on
+        SSLProtocol +TLSv1 +TLSv1.1 +TLSv1.2
+        SSLCipherSuite HIGH:!RC4:!MD5:!aNULL:!eNULL:!EXP:!LOW:!MEDIUM
 {% if ssl_configured %}
 		SSLCertificateFile {{ ssl_cert }}
 		SSLCertificateKeyFile {{ ssl_key }}
