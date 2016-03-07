@@ -19,7 +19,6 @@ from charmhelpers.fetch import (
 )
 from charmhelpers.core.host import (
     lsb_release,
-    restart_on_change
 )
 from charmhelpers.contrib.openstack.utils import (
     config_value_changed,
@@ -44,6 +43,7 @@ from horizon_utils import (
     setup_ipv6,
     INSTALL_DIR,
     REQUIRED_INTERFACES,
+    restart_on_change
 )
 from charmhelpers.contrib.network.ip import (
     get_iface_for_address,
@@ -82,7 +82,7 @@ def install():
 
 
 @hooks.hook('upgrade-charm')
-@restart_on_change(restart_map())
+@restart_on_change(restart_map(), stopstart=True, sleep=3)
 def upgrade_charm():
     execd_preinstall()
     apt_install(filter_installed_packages(determine_packages()), fatal=True)
@@ -91,7 +91,7 @@ def upgrade_charm():
 
 
 @hooks.hook('config-changed')
-@restart_on_change(restart_map())
+@restart_on_change(restart_map(), stopstart=True, sleep=3)
 def config_changed():
     if config('prefer-ipv6'):
         setup_ipv6()
@@ -149,7 +149,7 @@ def keystone_joined(rel_id=None):
 
 
 @hooks.hook('identity-service-relation-changed')
-@restart_on_change(restart_map())
+@restart_on_change(restart_map(), stopstart=True, sleep=3)
 def keystone_changed():
     CONFIGS.write(LOCAL_SETTINGS)
     if relation_get('ca_cert'):
@@ -166,7 +166,7 @@ def cluster_joined(relation_id=None):
 
 @hooks.hook('cluster-relation-departed',
             'cluster-relation-changed')
-@restart_on_change(restart_map())
+@restart_on_change(restart_map(), stopstart=True, sleep=3)
 def cluster_relation():
     CONFIGS.write(HAPROXY_CONF)
 
@@ -266,7 +266,7 @@ def plugin_relation_joined(rel_id=None):
 
 
 @hooks.hook('dashboard-plugin-relation-changed')
-@restart_on_change(restart_map())
+@restart_on_change(restart_map(), stopstart=True, sleep=3)
 def update_plugin_config():
     CONFIGS.write(LOCAL_SETTINGS)
 

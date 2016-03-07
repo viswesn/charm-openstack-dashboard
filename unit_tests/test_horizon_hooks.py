@@ -130,8 +130,8 @@ class TestHorizonHooks(CharmTestCase):
         self.apt_install.assert_called_with(['foo', 'bar'], fatal=True)
         self.git_install.assert_called_with(projects_yaml)
 
-    @patch('charmhelpers.core.host.path_hash')
-    @patch('charmhelpers.core.host.service')
+    @patch.object(utils, 'path_hash')
+    @patch.object(utils, 'service')
     @patch.object(utils, 'git_install_requested')
     def test_upgrade_charm_hook(self, _git_requested, _service, _hash):
         _git_requested.return_value = False
@@ -144,8 +144,10 @@ class TestHorizonHooks(CharmTestCase):
         self.apt_install.assert_called_with(['foo'], fatal=True)
         self.assertTrue(self.CONFIGS.write_all.called)
         ex = [
-            call('restart', 'apache2'),
-            call('restart', 'haproxy')
+            call('stop', 'apache2'),
+            call('stop', 'haproxy'),
+            call('start', 'apache2'),
+            call('start', 'haproxy'),
         ]
         self.assertEquals(ex, _service.call_args_list)
 

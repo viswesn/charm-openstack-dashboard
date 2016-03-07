@@ -5,6 +5,7 @@ import os
 import pwd
 import subprocess
 import shutil
+import time
 from collections import OrderedDict
 
 import charmhelpers.contrib.openstack.context as context
@@ -35,6 +36,8 @@ from charmhelpers.core.host import (
     lsb_release,
     mkdir,
     service_restart,
+    path_hash,
+    service,
 )
 from charmhelpers.core.templating import (
     render,
@@ -418,3 +421,49 @@ def git_post_install_late(projects_yaml):
                            'collectstatic', '--noinput'])
     subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
                            'compress', '--force'])
+
+
+# [thedac] Work around apache restart Bug#1552822
+# Allow for sleep time between stop and start
+def restart_on_change(restart_map, stopstart=False, sleep=0):
+    """Restart services based on configuration files changing
+
+    This function is used a decorator, for example::
+
+        @restart_on_change({
+            '/etc/ceph/ceph.conf': [ 'cinder-api', 'cinder-volume' ]
+            '/etc/apache/sites-enabled/*': [ 'apache2' ]
+            })
+        def config_changed():
+            pass  # your code here
+
+    In this example, the cinder-api and cinder-volume services
+    would be restarted if /etc/ceph/ceph.conf is changed by the
+    ceph_client_changed function. The apache2 service would be
+    restarted if any file matching the pattern got changed, created
+    or removed. Standard wildcards are supported, see documentation
+    for the 'glob' module for more information.
+
+    param: sleep    Allow for sleep time between stop and start
+                    Only used when stopstart=True
+    """
+    def wrap(f):
+        def wrapped_f(*args, **kwargs):
+            checksums = {path: path_hash(path) for path in restart_map}
+            f(*args, **kwargs)
+            restarts = []
+            for path in restart_map:
+                if path_hash(path) != checksums[path]:
+                    restarts += restart_map[path]
+            services_list = list(OrderedDict.fromkeys(restarts))
+            if not stopstart:
+                for service_name in services_list:
+                    service('restart', service_name)
+            else:
+                for action in ['stop', 'start']:
+                    for service_name in services_list:
+                        service(action, service_name)
+                        if action == 'stop' and sleep:
+                            time.sleep(sleep)
+        return wrapped_f
+    return wrap
