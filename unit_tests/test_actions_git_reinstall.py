@@ -1,10 +1,21 @@
-from mock import patch
 import os
+import sys
+
+from mock import patch, MagicMock
 
 os.environ['JUJU_UNIT_NAME'] = 'horizon'
 
-with patch('horizon_utils.register_configs') as register_configs:
-    import git_reinstall
+# python-apt is not installed as part of test-requirements but is imported by
+# some charmhelpers modules so create a fake import.
+mock_apt = MagicMock()
+sys.modules['apt'] = mock_apt
+mock_apt.apt_pkg = MagicMock()
+
+with patch('charmhelpers.contrib.hardening.harden.harden') as mock_dec:
+    mock_dec.side_effect = (lambda *dargs, **dkwargs: lambda f:
+                            lambda *args, **kwargs: f(*args, **kwargs))
+    with patch('horizon_utils.register_configs') as register_configs:
+        import git_reinstall
 
 from test_utils import (
     CharmTestCase

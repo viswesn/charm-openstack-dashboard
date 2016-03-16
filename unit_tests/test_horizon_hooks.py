@@ -1,13 +1,27 @@
-from mock import MagicMock, patch, call
 import yaml
+import sys
+
+from mock import MagicMock, patch, call
+from test_utils import CharmTestCase
+
+# python-apt is not installed as part of test-requirements but is imported by
+# some charmhelpers modules so create a fake import.
+sys.modules['apt'] = MagicMock()
+
 import horizon_utils as utils
 _register_configs = utils.register_configs
 utils.register_configs = MagicMock()
-import horizon_hooks as hooks
+
+with patch('charmhelpers.contrib.hardening.harden.harden') as mock_dec:
+    mock_dec.side_effect = (lambda *dargs, **dkwargs: lambda f:
+                            lambda *args, **kwargs: f(*args, **kwargs))
+
+    import horizon_hooks as hooks
+
 RESTART_MAP = utils.restart_map()
 utils.register_configs = _register_configs
+
 from charmhelpers.contrib.hahelpers.cluster import HAIncompleteConfig
-from test_utils import CharmTestCase
 
 TO_PATCH = [
     'config',
@@ -62,7 +76,7 @@ class TestHorizonHooks(CharmTestCase):
         _git_requested.return_value = False
         self.filter_installed_packages.return_value = ['foo', 'bar']
         self.os_release.return_value = 'icehouse'
-        self._call_hook('install')
+        self._call_hook('install.real')
         self.configure_installation_source.assert_called_with('distro')
         self.apt_update.assert_called_with(fatal=True)
         self.apt_install.assert_called_with(['foo', 'bar'], fatal=True)
@@ -73,7 +87,7 @@ class TestHorizonHooks(CharmTestCase):
         self.filter_installed_packages.return_value = ['foo', 'bar']
         self.os_release.return_value = 'icehouse'
         self.lsb_release.return_value = {'DISTRIB_CODENAME': 'precise'}
-        self._call_hook('install')
+        self._call_hook('install.real')
         self.configure_installation_source.assert_called_with('distro')
         self.apt_update.assert_called_with(fatal=True)
         calls = [
@@ -123,7 +137,7 @@ class TestHorizonHooks(CharmTestCase):
         projects_yaml = yaml.dump(openstack_origin_git)
         self.test_config.set('openstack-origin', repo)
         self.test_config.set('openstack-origin-git', projects_yaml)
-        self._call_hook('install')
+        self._call_hook('install.real')
         self.assertTrue(self.execd_preinstall.called)
         self.configure_installation_source.assert_called_with(repo)
         self.apt_update.assert_called_with(fatal=True)
