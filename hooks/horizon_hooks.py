@@ -28,7 +28,6 @@ from charmhelpers.contrib.openstack.utils import (
     openstack_upgrade_available,
     os_release,
     save_script_rc,
-    set_os_workload_status,
 )
 from horizon_utils import (
     determine_packages,
@@ -42,8 +41,8 @@ from horizon_utils import (
     git_post_install_late,
     setup_ipv6,
     INSTALL_DIR,
-    REQUIRED_INTERFACES,
-    restart_on_change
+    restart_on_change,
+    assess_status,
 )
 from charmhelpers.contrib.network.ip import (
     get_iface_for_address,
@@ -272,12 +271,11 @@ def update_plugin_config():
 
 
 def main():
-    print sys.argv
     try:
         hooks.execute(sys.argv)
     except UnregisteredHookError as e:
         log('Unknown hook {} - skipping.'.format(e))
-    set_os_workload_status(CONFIGS, REQUIRED_INTERFACES)
+    assess_status(CONFIGS)
 
 
 if __name__ == '__main__':

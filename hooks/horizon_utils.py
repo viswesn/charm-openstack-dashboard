@@ -20,6 +20,10 @@ from charmhelpers.contrib.openstack.utils import (
     git_src_dir,
     git_pip_venv_dir,
     git_yaml_value,
+    pause_unit,
+    resume_unit,
+    make_assess_status_func,
+    is_unit_paused_set,
 )
 from charmhelpers.contrib.python.packages import (
     pip_install,
@@ -406,7 +410,8 @@ def git_post_install(projects_yaml):
 
     subprocess.check_call(['a2enconf', 'openstack-dashboard'])
 
-    service_restart('apache2')
+    if not is_unit_paused_set():
+        service_restart('apache2')
 
 
 def git_post_install_late(projects_yaml):
@@ -449,6 +454,8 @@ def restart_on_change(restart_map, stopstart=False, sleep=0):
     """
     def wrap(f):
         def wrapped_f(*args, **kwargs):
+            if is_unit_paused_set():
+                return f(*args, **kwargs)
             checksums = {path: path_hash(path) for path in restart_map}
             f(*args, **kwargs)
             restarts = []
@@ -467,3 +474,69 @@ def restart_on_change(restart_map, stopstart=False, sleep=0):
                             time.sleep(sleep)
         return wrapped_f
     return wrap
+
+
+def assess_status(configs):
+    """Assess status of current unit
+    Decides what the state of the unit should be based on the current
+    configuration.
+    SIDE EFFECT: calls set_os_workload_status(...) which sets the workload
+    status of the unit.
+    Also calls status_set(...) directly if paused state isn't complete.
+    @param configs: a templating.OSConfigRenderer() object
+    @returns None - this function is executed for its side-effect
+    """
+    assess_status_func(configs)()
+
+
+def assess_status_func(configs):
+    """Helper function to create the function that will assess_status() for
+    the unit.
+    Uses charmhelpers.contrib.openstack.utils.make_assess_status_func() to
+    create the appropriate status function and then returns it.
+    Used directly by assess_status() and also for pausing and resuming
+    the unit.
+
+    NOTE(ajkavanagh) ports are not checked due to race hazards with services
+    that don't behave sychronously w.r.t their service scripts.  e.g.
+    apache2.
+    @param configs: a templating.OSConfigRenderer() object
+    @return f() -> None : a function that assesses the unit's workload status
+    """
+    return make_assess_status_func(
+        configs, REQUIRED_INTERFACES,
+        services=services(), ports=None)
+
+
+def pause_unit_helper(configs):
+    """Helper function to pause a unit, and then call assess_status(...) in
+    effect, so that the status is correctly updated.
+    Uses charmhelpers.contrib.openstack.utils.pause_unit() to do the work.
+    @param configs: a templating.OSConfigRenderer() object
+    @returns None - this function is executed for its side-effect
+    """
+    _pause_resume_helper(pause_unit, configs)
+
+
+def resume_unit_helper(configs):
+    """Helper function to resume a unit, and then call assess_status(...) in
+    effect, so that the status is correctly updated.
+    Uses charmhelpers.contrib.openstack.utils.resume_unit() to do the work.
+    @param configs: a templating.OSConfigRenderer() object
+    @returns None - this function is executed for its side-effect
+    """
+    _pause_resume_helper(resume_unit, configs)
+
+
+def _pause_resume_helper(f, configs):
+    """Helper function that uses the make_assess_status_func(...) from
+    charmhelpers.contrib.openstack.utils to create an assess_status(...)
+    function that can be used with the pause/resume of the unit
+    @param f: the function to be used with the assess_status(...) function
+    @returns None - this function is executed for its side-effect
+    """
+    # TODO(ajkavanagh) - ports= has been left off because of the race hazard
+    # that exists due to service_start()
+    f(assess_status_func(configs),
+      services=services(),
+      ports=None)
