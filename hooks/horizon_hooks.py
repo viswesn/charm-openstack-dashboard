@@ -54,6 +54,7 @@ from charmhelpers.contrib.hahelpers.apache import install_ca_cert
 from charmhelpers.contrib.hahelpers.cluster import get_hacluster_config
 from charmhelpers.payload.execd import execd_preinstall
 from charmhelpers.contrib.charmsupport import nrpe
+from charmhelpers.contrib.hardening.harden import harden
 from base64 import b64decode
 
 hooks = Hooks()
@@ -61,6 +62,7 @@ CONFIGS = register_configs()
 
 
 @hooks.hook('install.real')
+@harden()
 def install():
     execd_preinstall()
     configure_installation_source(config('openstack-origin'))
@@ -82,6 +84,7 @@ def install():
 
 @hooks.hook('upgrade-charm')
 @restart_on_change(restart_map(), stopstart=True, sleep=3)
+@harden()
 def upgrade_charm():
     execd_preinstall()
     apt_install(filter_installed_packages(determine_packages()), fatal=True)
@@ -91,6 +94,7 @@ def upgrade_charm():
 
 @hooks.hook('config-changed')
 @restart_on_change(restart_map(), stopstart=True, sleep=3)
+@harden()
 def config_changed():
     if config('prefer-ipv6'):
         setup_ipv6()
@@ -268,6 +272,12 @@ def plugin_relation_joined(rel_id=None):
 @restart_on_change(restart_map(), stopstart=True, sleep=3)
 def update_plugin_config():
     CONFIGS.write(LOCAL_SETTINGS)
+
+
+@hooks.hook('update-status')
+@harden()
+def update_status():
+    log('Updating status.')
 
 
 def main():
