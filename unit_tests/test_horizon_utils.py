@@ -297,3 +297,45 @@ class TestHorizohorizon_utils(CharmTestCase):
             call('apache2'),
         ]
         self.assertEquals(service_restart.call_args_list, expected)
+
+    def test_assess_status(self):
+        with patch.object(horizon_utils, 'assess_status_func') as asf:
+            callee = MagicMock()
+            asf.return_value = callee
+            horizon_utils.assess_status('test-config')
+            asf.assert_called_once_with('test-config')
+            callee.assert_called_once_with()
+
+    @patch.object(horizon_utils, 'REQUIRED_INTERFACES')
+    @patch.object(horizon_utils, 'services')
+    @patch.object(horizon_utils, 'make_assess_status_func')
+    def test_assess_status_func(self,
+                                make_assess_status_func,
+                                services,
+                                REQUIRED_INTERFACES):
+        services.return_value = 's1'
+        horizon_utils.assess_status_func('test-config')
+        # ports=None whilst port checks are disabled.
+        make_assess_status_func.assert_called_once_with(
+            'test-config', REQUIRED_INTERFACES, services='s1', ports=None)
+
+    def test_pause_unit_helper(self):
+        with patch.object(horizon_utils, '_pause_resume_helper') as prh:
+            horizon_utils.pause_unit_helper('random-config')
+            prh.assert_called_once_with(horizon_utils.pause_unit,
+                                        'random-config')
+        with patch.object(horizon_utils, '_pause_resume_helper') as prh:
+            horizon_utils.resume_unit_helper('random-config')
+            prh.assert_called_once_with(horizon_utils.resume_unit,
+                                        'random-config')
+
+    @patch.object(horizon_utils, 'services')
+    def test_pause_resume_helper(self, services):
+        f = MagicMock()
+        services.return_value = 's1'
+        with patch.object(horizon_utils, 'assess_status_func') as asf:
+            asf.return_value = 'assessor'
+            horizon_utils._pause_resume_helper(f, 'some-config')
+            asf.assert_called_once_with('some-config')
+            # ports=None whilst port checks are disabled.
+            f.assert_called_once_with('assessor', services='s1', ports=None)
