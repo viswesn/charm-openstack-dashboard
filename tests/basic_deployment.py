@@ -196,6 +196,8 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
             self.keystone_sentry: ['keystone'],
             self.openstack_dashboard_sentry: ['apache2']
         }
+        if self._get_openstack_release() >= self.trusty_liberty:
+            services[self.keystone_sentry] = ['apache2']
 
         ret = u.validate_services_by_name(services)
         if ret:
