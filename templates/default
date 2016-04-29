@@ -1,4 +1,8 @@
 <VirtualHost *:{{ http_port }}>
+
+        {% if ssl_addr -%}
+                RedirectPermanent / https://{{ ssl_addr }}:443/
+        {%- endif %}
         ServerAdmin webmaster@localhost
 
         DocumentRoot /var/www

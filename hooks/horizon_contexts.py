@@ -7,6 +7,7 @@ from charmhelpers.core.hookenv import (
     local_unit,
     unit_get,
     log,
+    WARNING,
     ERROR,
 )
 from charmhelpers.contrib.openstack.context import (
@@ -14,6 +15,7 @@ from charmhelpers.contrib.openstack.context import (
     HAProxyContext,
     context_complete
 )
+from charmhelpers.contrib.openstack.utils import get_host_ip
 from charmhelpers.contrib.hahelpers.apache import (
     get_ca_cert,
     get_cert,
@@ -174,6 +176,22 @@ class ApacheContext(OSContextGenerator):
             'http_port': 70,
             'https_port': 433
         }
+
+        if config('enforce-ssl'):
+            # NOTE(dosaboy): if ssl is not configured we shouldn't allow this
+            if all(get_cert()):
+                if config('vip'):
+                    addr = config('vip')
+                elif config('prefer-ipv6'):
+                    addr = format_ipv6_addr(get_ipv6_addr()[0])
+                else:
+                    addr = get_host_ip(unit_get('private-address'))
+
+                ctxt['ssl_addr'] = addr
+            else:
+                log("Enforce ssl redirect requested but ssl not configured - "
+                    "skipping redirect", level=WARNING)
+
         return ctxt
 
 
@@ -183,8 +201,9 @@ class ApacheSSLContext(OSContextGenerator):
         ca_cert = get_ca_cert()
         if ca_cert:
             install_ca_cert(b64decode(ca_cert))
-        (ssl_cert, ssl_key) = get_cert()
-        if None not in [ssl_cert, ssl_key]:
+
+        ssl_cert, ssl_key = get_cert()
+        if all([ssl_cert, ssl_key]):
             with open('/etc/ssl/certs/dashboard.cert', 'w') as cert_out:
                 cert_out.write(b64decode(ssl_cert))
             with open('/etc/ssl/private/dashboard.key', 'w') as key_out:
