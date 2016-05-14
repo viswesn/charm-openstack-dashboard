@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #
 # Copyright 2016 Canonical Ltd
 #
@@ -180,9 +180,9 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
     def _initialize_tests(self):
         """Perform final initialization before tests get run."""
         # Access the sentries for inspecting service units
-        self.keystone_sentry = self.d.sentry.unit['keystone/0']
+        self.keystone_sentry = self.d.sentry['keystone'][0]
         self.openstack_dashboard_sentry = \
-            self.d.sentry.unit['openstack-dashboard/0']
+            self.d.sentry['openstack-dashboard'][0]
 
         u.log.debug('openstack release val: {}'.format(
             self._get_openstack_release()))
@@ -319,16 +319,23 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
     def test_910_pause_and_resume(self):
         """The services can be paused and resumed. """
         u.log.debug('Checking pause and resume actions...')
-        unit_name = "openstack-dashboard/0"
-        unit = self.d.sentry.unit[unit_name]
+        unit = self.d.sentry['openstack-dashboard'][0]
+        unit_name = unit.info['unit_name']
 
+        u.log.debug('Checking for active status on {}'.format(unit_name))
         assert u.status_get(unit)[0] == "active"
 
+        u.log.debug('Running pause action on {}'.format(unit_name))
         action_id = self._run_action(unit_name, "pause")
+        u.log.debug('Waiting on action {}'.format(action_id))
         assert self._wait_on_action(action_id), "Pause action failed."
+        u.log.debug('Checking for maintenance status on {}'.format(unit_name))
         assert u.status_get(unit)[0] == "maintenance"
 
+        u.log.debug('Running resume action on {}'.format(unit_name))
         action_id = self._run_action(unit_name, "resume")
+        u.log.debug('Waiting on action {}'.format(action_id))
         assert self._wait_on_action(action_id), "Resume action failed."
+        u.log.debug('Checking for active status on {}'.format(unit_name))
         assert u.status_get(unit)[0] == "active"
         u.log.debug('OK')
