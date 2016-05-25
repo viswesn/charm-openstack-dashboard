@@ -162,6 +162,7 @@ class HorizonContext(OSContextGenerator):
             "neutron_network_lb": config("neutron-network-lb"),
             "neutron_network_firewall": config("neutron-network-firewall"),
             "neutron_network_vpn": config("neutron-network-vpn"),
+            "cinder_backup": config("cinder-backup"),
         }
 
         return ctxt

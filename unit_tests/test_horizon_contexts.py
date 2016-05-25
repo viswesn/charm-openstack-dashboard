@@ -86,7 +86,8 @@ class TestHorizonContexts(CharmTestCase):
                            'support_profile': None,
                            "neutron_network_lb": False,
                            "neutron_network_firewall": False,
-                           "neutron_network_vpn": False})
+                           "neutron_network_vpn": False,
+                           "cinder_backup": False})
 
     def test_HorizonContext_debug(self):
         self.test_config.set('debug', 'yes')
@@ -98,7 +99,8 @@ class TestHorizonContexts(CharmTestCase):
                            'support_profile': None,
                            "neutron_network_lb": False,
                            "neutron_network_firewall": False,
-                           "neutron_network_vpn": False})
+                           "neutron_network_vpn": False,
+                           "cinder_backup": False})
 
     def test_HorizonContext_theme(self):
         self.test_config.set('ubuntu-theme', False)
@@ -110,7 +112,8 @@ class TestHorizonContexts(CharmTestCase):
                            'support_profile': None,
                            "neutron_network_lb": False,
                            "neutron_network_firewall": False,
-                           "neutron_network_vpn": False})
+                           "neutron_network_vpn": False,
+                           "cinder_backup": False})
 
     def test_HorizonContext_compression(self):
         self.test_config.set('offline-compression', 'no')
@@ -122,7 +125,8 @@ class TestHorizonContexts(CharmTestCase):
                            'support_profile': None,
                            "neutron_network_lb": False,
                            "neutron_network_firewall": False,
-                           "neutron_network_vpn": False})
+                           "neutron_network_vpn": False,
+                           "cinder_backup": False})
 
     def test_HorizonContext_role(self):
         self.test_config.set('default-role', 'foo')
@@ -134,7 +138,8 @@ class TestHorizonContexts(CharmTestCase):
                            'support_profile': None,
                            "neutron_network_lb": False,
                            "neutron_network_firewall": False,
-                           "neutron_network_vpn": False})
+                           "neutron_network_vpn": False,
+                           "cinder_backup": False})
 
     def test_HorizonContext_webroot(self):
         self.test_config.set('webroot', '/')
@@ -146,7 +151,24 @@ class TestHorizonContexts(CharmTestCase):
                            'support_profile': None,
                            "neutron_network_lb": False,
                            "neutron_network_firewall": False,
-                           "neutron_network_vpn": False})
+                           "neutron_network_vpn": False,
+                           "cinder_backup": False})
+
+    def test_HorizonContext_panels(self):
+        self.test_config.set('neutron-network-lb', True)
+        self.test_config.set('neutron-network-firewall', True)
+        self.test_config.set('neutron-network-vpn', True)
+        self.test_config.set('cinder-backup', True)
+        self.assertEquals(horizon_contexts.HorizonContext()(),
+                          {'compress_offline': True, 'debug': False,
+                           'default_role': 'Member', 'webroot': '/horizon',
+                           'ubuntu_theme': True,
+                           'secret': 'secret',
+                           'support_profile': None,
+                           "neutron_network_lb": True,
+                           "neutron_network_firewall": True,
+                           "neutron_network_vpn": True,
+                           "cinder_backup": True})
 
     def test_IdentityServiceContext_not_related(self):
         self.relation_ids.return_value = []
