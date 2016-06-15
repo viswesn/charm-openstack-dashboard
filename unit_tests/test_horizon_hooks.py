@@ -52,6 +52,7 @@ TO_PATCH = [
     'update_nrpe_config',
     'lsb_release',
     'status_set',
+    'update_dns_ha_resource_params',
 ]
 
 
@@ -178,6 +179,7 @@ class TestHorizonHooks(CharmTestCase):
         self.get_hacluster_config.return_value = conf
         self._call_hook('ha-relation-joined')
         ex_args = {
+            'relation_id': None,
             'corosync_mcastport': '37373',
             'init_services': {
                 'res_horizon_haproxy': 'haproxy'},
@@ -208,6 +210,7 @@ class TestHorizonHooks(CharmTestCase):
         self.get_hacluster_config.return_value = conf
         self._call_hook('ha-relation-joined')
         ex_args = {
+            'relation_id': None,
             'corosync_mcastport': '37373',
             'init_services': {
                 'res_horizon_haproxy': 'haproxy'},
@@ -229,6 +232,41 @@ class TestHorizonHooks(CharmTestCase):
         self.get_hacluster_config.side_effect = HAIncompleteConfig(1, 'bang')
         self.assertRaises(HAIncompleteConfig, self._call_hook,
                           'ha-relation-joined')
+
+    def test_ha_joined_dns_ha(self):
+        def _fake_update(resources, resource_params, relation_id=None):
+            resources.update({'res_horizon_public_hostname': 'ocf:maas:dns'})
+            resource_params.update({'res_horizon_public_hostname':
+                                    'params fqdn="keystone.maas" '
+                                    'ip_address="10.0.0.1"'})
+
+        self.test_config.set('dns-ha', True)
+        self.get_hacluster_config.return_value = {
+            'vip': None,
+            'ha-bindiface': 'em0',
+            'ha-mcastport': '8080',
+            'os-admin-hostname': None,
+            'os-internal-hostname': None,
+            'os-public-hostname': 'keystone.maas',
+        }
+        args = {
+            'relation_id': None,
+            'corosync_bindiface': 'em0',
+            'corosync_mcastport': '8080',
+            'init_services': {'res_horizon_haproxy': 'haproxy'},
+            'resources': {'res_horizon_public_hostname': 'ocf:maas:dns',
+                          'res_horizon_haproxy': 'lsb:haproxy'},
+            'resource_params': {
+                'res_horizon_public_hostname': 'params fqdn="keystone.maas" '
+                                               'ip_address="10.0.0.1"',
+                'res_horizon_haproxy': 'op monitor interval="5s"'},
+            'clones': {'cl_horizon_haproxy': 'res_horizon_haproxy'}
+        }
+        self.update_dns_ha_resource_params.side_effect = _fake_update
+
+        hooks.ha_relation_joined()
+        self.assertTrue(self.update_dns_ha_resource_params.called)
+        self.relation_set.assert_called_with(**args)
 
     @patch('horizon_hooks.keystone_joined')
     @patch.object(hooks, 'git_install_requested')

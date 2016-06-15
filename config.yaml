@@ -76,6 +76,12 @@ options:
     description: |
       Default role for Horizon operations that will be created in
       Keystone upon introduction of an identity-service relation.
+  dns-ha:
+    type: boolean
+    default: False
+    description: |
+        Use DNS HA with MAAS 2.0. Note if this is set do not set vip
+        settings below.
   vip:
     type: string
     default:
@@ -105,6 +111,42 @@ options:
     description: |
       Default multicast port number that will be used to communicate between
       HA Cluster nodes.
+  os-public-hostname:
+    type: string
+    default:
+    description: |
+      The hostname or address of the public endpoints created for
+      openstack-dashboard.
+
+      This value will be used for public endpoints. For example, an
+      os-public-hostname set to 'horizon.example.com' with will create
+      the following public endpoint for the swift-proxy:
+
+      https://horizon.example.com/horizon
+  os-internal-hostname:
+    type: string
+    default:
+    description: |
+      The hostname or address of the internal endpoints created for
+      openstack-dashboard.
+
+      This value will be used for internal endpoints. For example, an
+      os-internal-hostname set to 'horizon.internal.example.com' with will
+      create the following internal endpoint for the swift-proxy:
+
+      https://horizon.internal.example.com/horizon
+  os-admin-hostname:
+    type: string
+    default:
+    description: |
+      The hostname or address of the admin endpoints created for
+      openstack-dashboard.
+
+      This value will be used for admin endpoints. For example, an
+      os-admin-hostname set to 'horizon.admin.example.com' with will create
+      the following admin endpoint for the swift-proxy:
+
+      https://horizon.admin.example.com/horizon
   # User provided SSL cert/key/ca
   ssl_cert:
     type: string
