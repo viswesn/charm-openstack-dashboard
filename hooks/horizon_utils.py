@@ -16,6 +16,7 @@ from charmhelpers.contrib.openstack.utils import (
     get_os_codename_install_source,
     git_install_requested,
     git_clone_and_install,
+    git_default_repos,
     os_release,
     git_src_dir,
     git_pip_venv_dir,
@@ -290,6 +291,7 @@ def git_install(projects_yaml):
     """Perform setup, and install git repos specified in yaml parameter."""
     if git_install_requested():
         git_pre_install()
+        projects_yaml = git_default_repos(projects_yaml)
         git_clone_and_install(projects_yaml, core_project='horizon')
         git_post_install(projects_yaml)
 
@@ -321,6 +323,8 @@ def git_pre_install():
 
 def git_post_install(projects_yaml):
     """Perform horizon post-install setup."""
+    projects_yaml = git_default_repos(projects_yaml)
+
     src_dir = git_src_dir(projects_yaml, 'horizon')
     copy_files = {
         'manage': {
@@ -416,6 +420,8 @@ def git_post_install(projects_yaml):
 
 def git_post_install_late(projects_yaml):
     """Perform horizon post-install setup."""
+    projects_yaml = git_default_repos(projects_yaml)
+
     render('git/dashboard.conf',
            '/etc/apache2/conf-available/openstack-dashboard.conf',
            {'virtualenv': git_pip_venv_dir(projects_yaml)},
