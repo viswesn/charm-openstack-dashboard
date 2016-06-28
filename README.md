@@ -70,6 +70,17 @@ If both 'vip' and 'dns-ha' are set as they are mutually exclusive
 If 'dns-ha' is set and none of the os-{admin,internal,public}-hostname(s) are
 set
 
+Whichever method has been used to cluster the charm the 'secret' option
+should be set to ensure that the Django secret is consistent accross all units.
+
+Keystone V3
+===========
+
+If the charm is being deployed into a keystone v3 enabled environment then the
+charm needs to be related to a database to store session information. This is
+only supported for Mitaka or later.
+
+
 Use with a Load Balancing Proxy
 ===============================
 

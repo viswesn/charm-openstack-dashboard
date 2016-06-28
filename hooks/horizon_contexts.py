@@ -110,9 +110,14 @@ class IdentityServiceContext(OSContextGenerator):
                     'service_port': rdata.get('service_port'),
                     'service_host': serv_host,
                     'service_protocol':
-                    rdata.get('service_protocol') or 'http'
+                    rdata.get('service_protocol') or 'http',
+                    'api_version': rdata.get('api_version', '2')
                 }
-
+                # If using keystone v3 the context is incomplete without the
+                # admin domain id
+                if local_ctxt['api_version'] == '3':
+                    local_ctxt['admin_domain_id'] = rdata.get(
+                        'admin_domain_id')
                 if not context_complete(local_ctxt):
                     continue
 

@@ -12,6 +12,9 @@ from charmhelpers.core.hookenv import (
     relation_ids,
     unit_get,
     status_set,
+    network_get_primary_address,
+    is_leader,
+    local_unit,
 )
 from charmhelpers.fetch import (
     apt_update, apt_install,
@@ -28,6 +31,7 @@ from charmhelpers.contrib.openstack.utils import (
     openstack_upgrade_available,
     os_release,
     save_script_rc,
+    sync_db_with_multi_ipv6_addresses,
 )
 from charmhelpers.contrib.openstack.ha.utils import (
     update_dns_ha_resource_params,
@@ -46,6 +50,7 @@ from horizon_utils import (
     INSTALL_DIR,
     restart_on_change,
     assess_status,
+    db_migration,
 )
 from charmhelpers.contrib.network.ip import (
     get_iface_for_address,
@@ -157,7 +162,7 @@ def keystone_joined(rel_id=None):
 @hooks.hook('identity-service-relation-changed')
 @restart_on_change(restart_map(), stopstart=True, sleep=3)
 def keystone_changed():
-    CONFIGS.write(LOCAL_SETTINGS)
+    CONFIGS.write_all()
     if relation_get('ca_cert'):
         install_ca_cert(b64decode(relation_get('ca_cert')))
 
@@ -287,6 +292,44 @@ def update_plugin_config():
 @harden()
 def update_status():
     log('Updating status.')
+
+
+@hooks.hook('shared-db-relation-joined')
+def db_joined():
+    if config('prefer-ipv6'):
+        sync_db_with_multi_ipv6_addresses(config('database'),
+                                          config('database-user'))
+    else:
+        host = None
+        try:
+            # NOTE: try to use network spaces
+            host = network_get_primary_address('shared-db')
+        except NotImplementedError:
+            # NOTE: fallback to private-address
+            host = unit_get('private-address')
+
+        relation_set(database=config('database'),
+                     username=config('database-user'),
+                     hostname=host)
+
+
+@hooks.hook('shared-db-relation-changed')
+@restart_on_change(restart_map(), stopstart=True, sleep=3)
+def db_changed():
+    if 'shared-db' not in CONFIGS.complete_contexts():
+        log('shared-db relation incomplete. Peer not ready?')
+        return
+    CONFIGS.write_all()
+    if is_leader():
+        allowed_units = relation_get('allowed_units')
+        if allowed_units and local_unit() in allowed_units.split():
+            db_migration()
+        else:
+            log('Not running neutron database migration, either no'
+                ' allowed_units or this unit is not present')
+            return
+    else:
+        log('Not running neutron database migration, not leader')
 
 
 def main():

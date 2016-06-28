@@ -35,6 +35,29 @@ class TestHorizohorizon_utils(CharmTestCase):
     def setUp(self):
         super(TestHorizohorizon_utils, self).setUp(horizon_utils, TO_PATCH)
 
+    @patch.object(horizon_utils, 'get_os_codename_install_source')
+    @patch.object(horizon_utils, 'git_install_requested')
+    def test_determine_packages(self, _git_install_requested,
+                                _get_os_codename_install_source):
+        _git_install_requested.return_value = False
+        _get_os_codename_install_source.return_value = 'icehouse'
+        self.assertEqual(horizon_utils.determine_packages(), [
+            'haproxy',
+            'python-novaclient',
+            'python-keystoneclient',
+            'openstack-dashboard-ubuntu-theme',
+            'python-memcache',
+            'openstack-dashboard',
+            'memcached'])
+
+    @patch.object(horizon_utils, 'get_os_codename_install_source')
+    @patch.object(horizon_utils, 'git_install_requested')
+    def test_determine_packages_mitaka(self, _git_install_requested,
+                                       _get_os_codename_install_source):
+        _git_install_requested.return_value = False
+        _get_os_codename_install_source.return_value = 'mitaka'
+        self.assertTrue('python-pymysql' in horizon_utils.determine_packages())
+
     @patch('subprocess.call')
     def test_enable_ssl(self, _call):
         horizon_utils.enable_ssl()
@@ -57,6 +80,8 @@ class TestHorizohorizon_utils(CharmTestCase):
             ('/etc/haproxy/haproxy.cfg', ['haproxy']),
             ('/usr/share/openstack-dashboard/openstack_dashboard/enabled/'
              '_40_router.py', ['apache2']),
+            ('/usr/share/openstack-dashboard/openstack_dashboard/conf/'
+             'keystonev3_policy.json', ['apache2']),
         ])
         self.assertEquals(horizon_utils.restart_map(), ex_map)
 

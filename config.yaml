@@ -290,3 +290,11 @@ options:
     description: |
       If True, redirects plain http requests to https port 443. For this option
       to have an effect, SSL must be configured.
+  database-user:
+    default: horizon
+    type: string
+    description: Username for Horizon database access (if enabled)
+  database:
+    default: horizon
+    type: string
+    description: Database name for Horizon (if enabled)

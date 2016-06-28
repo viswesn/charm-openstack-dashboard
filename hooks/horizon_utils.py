@@ -93,6 +93,7 @@ GIT_PACKAGE_BLACKLIST = [
 
 APACHE_CONF_DIR = "/etc/apache2"
 LOCAL_SETTINGS = "/etc/openstack-dashboard/local_settings.py"
+DASHBOARD_CONF_DIR = "/etc/openstack-dashboard/"
 HAPROXY_CONF = "/etc/haproxy/haproxy.cfg"
 APACHE_CONF = "%s/conf.d/openstack-dashboard.conf" % (APACHE_CONF_DIR)
 APACHE_24_CONF = "%s/conf-available/openstack-dashboard.conf" \
@@ -103,9 +104,10 @@ APACHE_24_DEFAULT = "%s/sites-available/000-default.conf" % (APACHE_CONF_DIR)
 APACHE_SSL = "%s/sites-available/default-ssl" % (APACHE_CONF_DIR)
 APACHE_DEFAULT = "%s/sites-available/default" % (APACHE_CONF_DIR)
 INSTALL_DIR = "/usr/share/openstack-dashboard"
-ROUTER_SETTING = \
-    "/usr/share/openstack-dashboard/openstack_dashboard/enabled/_40_router.py"
-
+ROUTER_SETTING = ('/usr/share/openstack-dashboard/openstack_dashboard/enabled/'
+                  '_40_router.py')
+KEYSTONEV3_POLICY = ('/usr/share/openstack-dashboard/openstack_dashboard/conf/'
+                     'keystonev3_policy.json')
 TEMPLATES = 'templates'
 
 CONFIG_FILES = OrderedDict([
@@ -159,6 +161,10 @@ CONFIG_FILES = OrderedDict([
         'hook_contexts': [horizon_contexts.RouterSettingContext()],
         'services': ['apache2'],
     }),
+    (KEYSTONEV3_POLICY, {
+        'hook_contexts': [horizon_contexts.IdentityServiceContext()],
+        'services': ['apache2'],
+    }),
 ])
 
 
@@ -171,6 +177,15 @@ def register_configs():
     confs = [LOCAL_SETTINGS,
              HAPROXY_CONF,
              PORTS_CONF]
+
+    if release >= 'mitaka':
+        configs.register(KEYSTONEV3_POLICY,
+                         CONFIG_FILES[KEYSTONEV3_POLICY]['hook_contexts'])
+        CONFIG_FILES[LOCAL_SETTINGS]['hook_contexts'].append(
+            context.SharedDBContext(
+                user=config('database-user'),
+                database=config('database'),
+                ssl_dir=DASHBOARD_CONF_DIR))
 
     for conf in confs:
         configs.register(conf, CONFIG_FILES[conf]['hook_contexts'])
@@ -197,6 +212,7 @@ def register_configs():
     if os.path.exists(os.path.dirname(ROUTER_SETTING)):
         configs.register(ROUTER_SETTING,
                          CONFIG_FILES[ROUTER_SETTING]['hook_contexts'])
+
     return configs
 
 
@@ -243,6 +259,10 @@ def determine_packages():
         for p in GIT_PACKAGE_BLACKLIST:
             packages.remove(p)
 
+    release = get_os_codename_install_source(config('openstack-origin'))
+    # Really should be handled as a dep in the openstack-dashboard package
+    if release >= 'mitaka':
+        packages.append('python-pymysql')
     return list(set(packages))
 
 
@@ -546,3 +566,8 @@ def _pause_resume_helper(f, configs):
     f(assess_status_func(configs),
       services=services(),
       ports=None)
+
+
+def db_migration():
+    cmd = ['/usr/share/openstack-dashboard/manage.py', 'syncdb', '--noinput']
+    subprocess.call(cmd)

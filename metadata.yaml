@@ -22,6 +22,8 @@ requires:
   ha:
     interface: hacluster
     scope: container
+  shared-db:
+    interface: mysql-shared
 peers:
   cluster:
     interface: openstack-dashboard-ha

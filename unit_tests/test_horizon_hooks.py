@@ -72,8 +72,10 @@ class TestHorizonHooks(CharmTestCase):
         hooks.hooks.execute([
             'hooks/{}'.format(hookname)])
 
+    @patch.object(hooks, 'determine_packages')
     @patch.object(utils, 'git_install_requested')
-    def test_install_hook(self, _git_requested):
+    def test_install_hook(self, _git_requested, _determine_packages):
+        _determine_packages.return_value = []
         _git_requested.return_value = False
         self.filter_installed_packages.return_value = ['foo', 'bar']
         self.os_release.return_value = 'icehouse'
@@ -82,8 +84,10 @@ class TestHorizonHooks(CharmTestCase):
         self.apt_update.assert_called_with(fatal=True)
         self.apt_install.assert_called_with(['foo', 'bar'], fatal=True)
 
+    @patch.object(hooks, 'determine_packages')
     @patch.object(utils, 'git_install_requested')
-    def test_install_hook_precise(self, _git_requested):
+    def test_install_hook_precise(self, _git_requested, _determine_packages):
+        _determine_packages.return_value = []
         _git_requested.return_value = False
         self.filter_installed_packages.return_value = ['foo', 'bar']
         self.os_release.return_value = 'icehouse'
@@ -97,8 +101,11 @@ class TestHorizonHooks(CharmTestCase):
         ]
         self.apt_install.assert_has_calls(calls)
 
+    @patch.object(hooks, 'determine_packages')
     @patch.object(utils, 'git_install_requested')
-    def test_install_hook_icehouse_pkgs(self, _git_requested):
+    def test_install_hook_icehouse_pkgs(self, _git_requested,
+                                        _determine_packages):
+        _determine_packages.return_value = []
         _git_requested.return_value = False
         self.os_release.return_value = 'icehouse'
         self._call_hook('install.real')
@@ -108,8 +115,11 @@ class TestHorizonHooks(CharmTestCase):
             )
         self.assertTrue(self.apt_install.called)
 
+    @patch.object(hooks, 'determine_packages')
     @patch.object(utils, 'git_install_requested')
-    def test_install_hook_pre_icehouse_pkgs(self, _git_requested):
+    def test_install_hook_pre_icehouse_pkgs(self, _git_requested,
+                                            _determine_packages):
+        _determine_packages.return_value = []
         _git_requested.return_value = False
         self.os_release.return_value = 'grizzly'
         self._call_hook('install.real')
@@ -119,8 +129,10 @@ class TestHorizonHooks(CharmTestCase):
             )
         self.assertTrue(self.apt_install.called)
 
+    @patch.object(hooks, 'determine_packages')
     @patch.object(utils, 'git_install_requested')
-    def test_install_hook_git(self, _git_requested):
+    def test_install_hook_git(self, _git_requested, _determine_packages):
+        _determine_packages.return_value = []
         _git_requested.return_value = True
         self.filter_installed_packages.return_value = ['foo', 'bar']
         repo = 'cloud:trusty-juno'
@@ -145,10 +157,13 @@ class TestHorizonHooks(CharmTestCase):
         self.apt_install.assert_called_with(['foo', 'bar'], fatal=True)
         self.git_install.assert_called_with(projects_yaml)
 
+    @patch.object(hooks, 'determine_packages')
     @patch.object(utils, 'path_hash')
     @patch.object(utils, 'service')
     @patch.object(utils, 'git_install_requested')
-    def test_upgrade_charm_hook(self, _git_requested, _service, _hash):
+    def test_upgrade_charm_hook(self, _git_requested, _service, _hash,
+                                _determine_packages):
+        _determine_packages.return_value = []
         _git_requested.return_value = False
         side_effects = []
         [side_effects.append(None) for f in RESTART_MAP.keys()]
@@ -337,17 +352,13 @@ class TestHorizonHooks(CharmTestCase):
     def test_keystone_changed_no_cert(self):
         self.relation_get.return_value = None
         self._call_hook('identity-service-relation-changed')
-        self.CONFIGS.write.assert_called_with(
-            '/etc/openstack-dashboard/local_settings.py'
-        )
+        self.CONFIGS.write_all.assert_called_with()
         self.install_ca_cert.assert_not_called()
 
     def test_keystone_changed_cert(self):
         self.relation_get.return_value = 'certificate'
         self._call_hook('identity-service-relation-changed')
-        self.CONFIGS.write.assert_called_with(
-            '/etc/openstack-dashboard/local_settings.py'
-        )
+        self.CONFIGS.write_all.assert_called_with()
         self.install_ca_cert.assert_called_with('certificate')
 
     def test_cluster_departed(self):

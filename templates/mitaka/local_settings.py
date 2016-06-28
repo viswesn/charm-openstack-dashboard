@@ -137,7 +137,25 @@ CACHES = {
         'LOCATION': '127.0.0.1:11211',
     },
 }
-
+{% if database_host -%}
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+DATABASES = {
+    'default': {
+        # Database configuration here
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': '{{ database }}',
+        'USER': '{{ database_user }}',
+        'PASSWORD': '{{ database_password }}',
+        'HOST': '{{ database_host }}',
+        'default-character-set': 'utf8'
+    }
+}
+{% else -%}
+{% if api_version == "3" -%}
+# Warning: Please add DB relation for Keystone v3 + HA deployments
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+{% endif -%}
+{% endif -%}
 #CACHES = {
 #    'default': {
 #        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
@@ -169,8 +187,16 @@ AVAILABLE_REGIONS = [
 {% endif -%}
 
 OPENSTACK_HOST = "{{ service_host }}"
-OPENSTACK_KEYSTONE_URL = "{{ service_protocol }}://%s:{{ service_port }}/v2.0" % OPENSTACK_HOST
 OPENSTACK_KEYSTONE_DEFAULT_ROLE = "{{ default_role }}"
+{% if api_version == "3" -%}
+OPENSTACK_KEYSTONE_URL = "{{ service_protocol }}://%s:{{ service_port }}/v3" % OPENSTACK_HOST
+OPENSTACK_API_VERSIONS = { "identity": 3, }
+OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = True
+OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = "{{ admin_domain_id }}"
+{% else -%}
+OPENSTACK_KEYSTONE_URL = "{{ service_protocol }}://%s:{{ service_port }}/v2.0" % OPENSTACK_HOST
+{% endif -%}
+
 
 # Enables keystone web single-sign-on if set to True.
 #WEBSSO_ENABLED = False
@@ -435,15 +461,17 @@ TIME_ZONE = "UTC"
 # policy.v3cloudsample.json
 # Having matching policy files on the Horizon and Keystone servers is essential
 # for normal operation. This holds true for all services and their policy files.
-#POLICY_FILES = {
-#    'identity': 'keystone_policy.json',
-#    'compute': 'nova_policy.json',
-#    'volume': 'cinder_policy.json',
-#    'image': 'glance_policy.json',
-#    'orchestration': 'heat_policy.json',
-#    'network': 'neutron_policy.json',
-#    'telemetry': 'ceilometer_policy.json',
-#}
+{% if api_version == "3" -%}
+POLICY_FILES = {
+    'identity': 'keystonev3_policy.json',
+    'compute': 'nova_policy.json',
+    'volume': 'cinder_policy.json',
+    'image': 'glance_policy.json',
+    'orchestration': 'heat_policy.json',
+    'network': 'neutron_policy.json',
+    'telemetry': 'ceilometer_policy.json',
+}
+{% endif -%}
 
 # TODO: (david-lyle) remove when plugins support adding settings.
 # Note: Only used when trove-dashboard plugin is configured to be used by

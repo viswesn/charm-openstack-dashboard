@@ -210,7 +210,7 @@ class TestHorizonContexts(CharmTestCase):
         self.context_complete.return_value = True
         self.assertEquals(horizon_contexts.IdentityServiceContext()(),
                           {'service_host': 'foo', 'service_port': 5000,
-                           'service_protocol': 'http'})
+                           'api_version': '2', 'service_protocol': 'http'})
 
     @patch("horizon_contexts.format_ipv6_addr")
     def test_IdentityServiceContext_single_region(self, mock_format_ipv6_addr):
@@ -223,7 +223,7 @@ class TestHorizonContexts(CharmTestCase):
         self.context_complete.return_value = True
         self.assertEquals(horizon_contexts.IdentityServiceContext()(),
                           {'service_host': 'foo', 'service_port': 5000,
-                           'service_protocol': 'http'})
+                           'api_version': '2', 'service_protocol': 'http'})
 
     @patch("horizon_contexts.format_ipv6_addr")
     def test_IdentityServiceContext_multi_region(self, mock_format_ipv6_addr):
@@ -236,11 +236,45 @@ class TestHorizonContexts(CharmTestCase):
         self.context_complete.return_value = True
         self.assertEqual(horizon_contexts.IdentityServiceContext()(),
                          {'service_host': 'foo', 'service_port': 5000,
-                          'service_protocol': 'http',
+                          'service_protocol': 'http', 'api_version': '2',
                           'regions': [{'endpoint': 'http://foo:5000/v2.0',
                                        'title': 'regionOne'},
                                       {'endpoint': 'http://foo:5000/v2.0',
                                        'title': 'regionTwo'}]})
+
+    @patch("horizon_contexts.format_ipv6_addr")
+    def test_IdentityServiceContext_api3(self, mock_format_ipv6_addr):
+        mock_format_ipv6_addr.return_value = "foo"
+        self.relation_ids.return_value = ['foo']
+        self.related_units.return_value = ['bar', 'baz']
+        self.relation_get.side_effect = self.test_relation.get
+        self.test_relation.set({
+            'service_host': 'foo',
+            'service_port': 5000,
+            'region': 'regionOne',
+            'api_version': '3',
+            'admin_domain_id': 'admindomainid'})
+        self.context_complete.return_value = True
+        self.assertEquals(horizon_contexts.IdentityServiceContext()(), {
+            'service_host': 'foo',
+            'service_port': 5000,
+            'api_version': '3',
+            'admin_domain_id': 'admindomainid',
+            'service_protocol': 'http'})
+
+    @patch("horizon_contexts.format_ipv6_addr")
+    def test_IdentityServiceContext_api3_missing(self, mock_format_ipv6_addr):
+        mock_format_ipv6_addr.return_value = "foo"
+        self.relation_ids.return_value = ['foo']
+        self.related_units.return_value = ['bar', 'baz']
+        self.relation_get.side_effect = self.test_relation.get
+        self.test_relation.set({
+            'service_host': 'foo',
+            'service_port': 5000,
+            'region': 'regionOne',
+            'api_version': '3'})
+        self.context_complete.return_value = False
+        self.assertEquals(horizon_contexts.IdentityServiceContext()(), {})
 
     def test_IdentityServiceContext_endpoint_type(self):
         self.test_config.set('endpoint-type', 'internalURL')
