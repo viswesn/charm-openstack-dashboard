@@ -58,9 +58,6 @@ from charmhelpers.core.host import (
     path_hash,
     service,
 )
-from charmhelpers.core.templating import (
-    render,
-)
 from charmhelpers.fetch import (
     apt_upgrade,
     apt_update,
@@ -411,11 +408,6 @@ def git_post_install(projects_yaml):
             os.remove(s['link'])
         os.symlink(s['src'], s['link'])
 
-    render('git/dashboard.conf',
-           '/etc/apache2/conf-available/openstack-dashboard.conf',
-           {'virtualenv': git_pip_venv_dir(projects_yaml)},
-           owner='root', group='root', perms=0o644)
-
     os.chmod('/var/lib/openstack-dashboard', 0o750)
     os.chmod('/usr/share/openstack-dashboard/manage.py', 0o755),
 
@@ -446,8 +438,6 @@ def git_post_install(projects_yaml):
         for f in files:
             os.lchown(os.path.join(root, f), uid, gid)
 
-    subprocess.check_call(['a2enconf', 'openstack-dashboard'])
-
     if not is_unit_paused_set():
         service_restart('apache2')
 
@@ -456,10 +446,10 @@ def git_post_install_late(projects_yaml):
     """Perform horizon post-install setup."""
     projects_yaml = git_default_repos(projects_yaml)
 
-    render('git/dashboard.conf',
-           '/etc/apache2/conf-available/openstack-dashboard.conf',
-           {'virtualenv': git_pip_venv_dir(projects_yaml)},
-           owner='root', group='root', perms=0o644)
+    subprocess.check_call(['a2enconf', 'openstack-dashboard'])
+
+    if not is_unit_paused_set():
+        service_restart('apache2')
 
     python = os.path.join(git_pip_venv_dir(projects_yaml), 'bin/python')
     subprocess.check_call([python, '/usr/share/openstack-dashboard/manage.py',
