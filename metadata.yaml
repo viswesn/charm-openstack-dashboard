@@ -7,6 +7,11 @@ description: |
 tags:
   - openstack
   - misc
+series:
+  - xenial
+  - trusty
+  - precise
+  - yakkety
 provides:
   nrpe-external-master:
     interface: nrpe-external-master
