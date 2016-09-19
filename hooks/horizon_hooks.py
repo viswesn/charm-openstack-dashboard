@@ -102,6 +102,7 @@ def install():
         status_set('maintenance', 'Installing packages')
         apt_install(packages, fatal=True)
 
+    status_set('maintenance', 'Git install')
     git_install(config('openstack-origin-git'))
 
 
@@ -137,6 +138,7 @@ def config_changed():
 
     if git_install_requested():
         if config_value_changed('openstack-origin-git'):
+            status_set('maintenance', 'Running Git install')
             git_install(config('openstack-origin-git'))
     elif not config('action-managed-upgrade'):
         if openstack_upgrade_available('openstack-dashboard'):

@@ -30,7 +30,11 @@ from charmhelpers.contrib.openstack.context import (
     HAProxyContext,
     context_complete
 )
-from charmhelpers.contrib.openstack.utils import get_host_ip
+from charmhelpers.contrib.openstack.utils import (
+    get_host_ip,
+    git_default_repos,
+    git_pip_venv_dir,
+)
 from charmhelpers.contrib.hahelpers.apache import (
     get_ca_cert,
     get_cert,
@@ -172,6 +176,7 @@ class IdentityServiceContext(OSContextGenerator):
 class HorizonContext(OSContextGenerator):
     def __call__(self):
         ''' Provide all configuration for Horizon '''
+        projects_yaml = git_default_repos(config('openstack-origin-git'))
         ctxt = {
             'compress_offline': config('offline-compression') in ['yes', True],
             'debug': config('debug') in ['yes', True],
@@ -185,6 +190,8 @@ class HorizonContext(OSContextGenerator):
             "neutron_network_firewall": config("neutron-network-firewall"),
             "neutron_network_vpn": config("neutron-network-vpn"),
             "cinder_backup": config("cinder-backup"),
+            'virtualenv': git_pip_venv_dir(projects_yaml)
+            if config('openstack-origin-git') else None,
         }
 
         return ctxt
