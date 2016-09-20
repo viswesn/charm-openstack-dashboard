@@ -39,6 +39,7 @@ from charmhelpers.contrib.openstack.utils import (
     resume_unit,
     make_assess_status_func,
     is_unit_paused_set,
+    os_application_version_set,
 )
 from charmhelpers.contrib.python.packages import (
     pip_install,
@@ -74,6 +75,8 @@ BASE_PACKAGES = [
     'python-memcache',
     'python-novaclient',
 ]
+
+VERSION_PACKAGE = 'openstack-dashboard'
 
 BASE_GIT_PACKAGES = [
     'apache2',
@@ -517,6 +520,7 @@ def assess_status(configs):
     @returns None - this function is executed for its side-effect
     """
     assess_status_func(configs)()
+    os_application_version_set(VERSION_PACKAGE)
 
 
 def assess_status_func(configs):

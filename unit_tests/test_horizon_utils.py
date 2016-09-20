@@ -32,6 +32,7 @@ TO_PATCH = [
     'log',
     'cmp_pkgrevno',
     'os_release',
+    'os_application_version_set',
 ]
 
 openstack_origin_git = \
@@ -344,6 +345,9 @@ class TestHorizohorizon_utils(CharmTestCase):
             horizon_utils.assess_status('test-config')
             asf.assert_called_once_with('test-config')
             callee.assert_called_once_with()
+            self.os_application_version_set.assert_called_with(
+                horizon_utils.VERSION_PACKAGE
+            )
 
     @patch.object(horizon_utils, 'REQUIRED_INTERFACES')
     @patch.object(horizon_utils, 'services')
