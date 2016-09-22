@@ -107,6 +107,8 @@ class TestHorizonContexts(CharmTestCase):
                            'virtualenv': None,
                            'secret': 'secret',
                            'support_profile': None,
+                           "neutron_network_dvr": False,
+                           "neutron_network_l3ha": False,
                            "neutron_network_lb": False,
                            "neutron_network_firewall": False,
                            "neutron_network_vpn": False,
@@ -121,6 +123,8 @@ class TestHorizonContexts(CharmTestCase):
                            'virtualenv': None,
                            'secret': 'secret',
                            'support_profile': None,
+                           "neutron_network_dvr": False,
+                           "neutron_network_l3ha": False,
                            "neutron_network_lb": False,
                            "neutron_network_firewall": False,
                            "neutron_network_vpn": False,
@@ -135,6 +139,8 @@ class TestHorizonContexts(CharmTestCase):
                            'virtualenv': None,
                            'secret': 'secret',
                            'support_profile': None,
+                           "neutron_network_dvr": False,
+                           "neutron_network_l3ha": False,
                            "neutron_network_lb": False,
                            "neutron_network_firewall": False,
                            "neutron_network_vpn": False,
@@ -149,6 +155,8 @@ class TestHorizonContexts(CharmTestCase):
                            'virtualenv': None,
                            'secret': 'secret',
                            'support_profile': None,
+                           "neutron_network_dvr": False,
+                           "neutron_network_l3ha": False,
                            "neutron_network_lb": False,
                            "neutron_network_firewall": False,
                            "neutron_network_vpn": False,
@@ -163,6 +171,8 @@ class TestHorizonContexts(CharmTestCase):
                            'virtualenv': None,
                            'secret': 'secret',
                            'support_profile': None,
+                           "neutron_network_dvr": False,
+                           "neutron_network_l3ha": False,
                            "neutron_network_lb": False,
                            "neutron_network_firewall": False,
                            "neutron_network_vpn": False,
@@ -177,12 +187,16 @@ class TestHorizonContexts(CharmTestCase):
                            'virtualenv': None,
                            'secret': 'secret',
                            'support_profile': None,
+                           "neutron_network_dvr": False,
+                           "neutron_network_l3ha": False,
                            "neutron_network_lb": False,
                            "neutron_network_firewall": False,
                            "neutron_network_vpn": False,
                            "cinder_backup": False})
 
     def test_HorizonContext_panels(self):
+        self.test_config.set('neutron-network-dvr', True)
+        self.test_config.set('neutron-network-l3ha', True)
         self.test_config.set('neutron-network-lb', True)
         self.test_config.set('neutron-network-firewall', True)
         self.test_config.set('neutron-network-vpn', True)
@@ -194,6 +208,8 @@ class TestHorizonContexts(CharmTestCase):
                            'virtualenv': None,
                            'secret': 'secret',
                            'support_profile': None,
+                           "neutron_network_dvr": True,
+                           "neutron_network_l3ha": True,
                            "neutron_network_lb": True,
                            "neutron_network_firewall": True,
                            "neutron_network_vpn": True,

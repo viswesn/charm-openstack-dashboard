@@ -186,6 +186,8 @@ class HorizonContext(OSContextGenerator):
             "secret": config('secret') or pwgen(),
             'support_profile': config('profile')
             if config('profile') in ['cisco'] else None,
+            "neutron_network_dvr": config("neutron-network-dvr"),
+            "neutron_network_l3ha": config("neutron-network-l3ha"),
             "neutron_network_lb": config("neutron-network-lb"),
             "neutron_network_firewall": config("neutron-network-firewall"),
             "neutron_network_vpn": config("neutron-network-vpn"),

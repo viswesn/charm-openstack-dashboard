@@ -178,6 +178,18 @@ options:
     type: string
     default:
     description: Default profile for the dashboard. Eg. cisco.
+  neutron-network-dvr:
+    type: boolean
+    default: False
+    description: |
+      Enable Neutron distributed virtual router (DVR) feature in the
+      Router panel.
+  neutron-network-l3ha:
+    type: boolean
+    default: False
+    description: |
+      Enable HA (High Availability) mode in Neutron virtual router in
+      the Router panel.
   neutron-network-lb:
     type: boolean
     default: False
