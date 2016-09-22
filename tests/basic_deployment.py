@@ -53,11 +53,12 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
         self._deploy()
 
         u.log.info('Waiting on extended status checks...')
-        exclude_services = ['mysql']
+        exclude_services = []
 
         # Wait for deployment ready msgs, except exclusions
         self._auto_wait_for_status(exclude_services=exclude_services)
 
+        self.d.sentry.wait()
         self._initialize_tests()
 
     def _add_services(self):
@@ -66,8 +67,10 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
         compatible with the local charm (e.g. stable or next).
         """
         this_service = {'name': 'openstack-dashboard'}
-        other_services = [{'name': 'keystone'},
-                          {'name': 'mysql'}]
+        other_services = [
+            {'name': 'keystone'},
+            {'name': 'percona-cluster', 'constraints': {'mem': '3072M'}},
+        ]
         super(OpenstackDashboardBasicDeployment, self)._add_services(
             this_service,
             other_services)
@@ -77,7 +80,7 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
         relations = {
             'openstack-dashboard:identity-service':
             'keystone:identity-service',
-            'keystone:shared-db': 'mysql:shared-db',
+            'keystone:shared-db': 'percona-cluster:shared-db',
         }
         super(OpenstackDashboardBasicDeployment, self)._add_relations(
             relations)
@@ -168,12 +171,21 @@ class OpenstackDashboardBasicDeployment(OpenStackAmuletDeployment):
             horizon_config['openstack-origin-git'] = \
                 yaml.dump(openstack_origin_git)
 
-        keystone_config = {'admin-password': 'openstack',
-                           'admin-token': 'ubuntutesting'}
-        mysql_config = {'dataset-size': '50%'}
-        configs = {'openstack-dashboard': horizon_config,
-                   'mysql': mysql_config,
-                   'keystone': keystone_config}
+        keystone_config = {
+            'admin-password': 'openstack',
+            'admin-token': 'ubuntutesting',
+        }
+        pxc_config = {
+            'dataset-size': '25%',
+            'max-connections': 1000,
+            'root-password': 'ChangeMe123',
+            'sst-password': 'ChangeMe123',
+        }
+        configs = {
+            'openstack-dashboard': horizon_config,
+            'percona-cluster': pxc_config,
+            'keystone': keystone_config,
+        }
         super(OpenstackDashboardBasicDeployment, self)._configure_services(
             configs)
 
