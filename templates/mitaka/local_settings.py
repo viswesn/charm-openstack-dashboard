@@ -830,6 +830,8 @@ try:
   from ubuntu_theme import *
 except ImportError:
   pass
+{% elif default_theme %}
+DEFAULT_THEME = '{{ default_theme }}'
 {% endif %}
 
 WEBROOT = '{{ webroot }}'

@@ -867,6 +867,8 @@ REST_API_REQUIRED_SETTINGS = ['OPENSTACK_HYPERVISOR_FEATURES',
 {% if ubuntu_theme %}
 # Enable the Ubuntu theme if it is present.
 DEFAULT_THEME = 'ubuntu'
+{% elif default_theme %}
+DEFAULT_THEME = '{{ default_theme }}'
 {% endif %}
 
 WEBROOT = '{{ webroot }}'

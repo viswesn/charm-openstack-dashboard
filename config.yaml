@@ -169,6 +169,14 @@ options:
     type: string
     default: "yes"
     description: Use Ubuntu theme for the dashboard.
+  default-theme:
+    type: string
+    default:
+    description: |
+      Specify path to theme to use
+      (relative to /usr/share/openstack-dashboard/openstack_dashboard/themes/).
+      NOTE: This setting is supported when deploying OpenStack Liberty or
+      newer. This setting and ubuntu-theme setting are mutually exclusive.
   secret:
     type: string
     default:

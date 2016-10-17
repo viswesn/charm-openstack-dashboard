@@ -749,6 +749,8 @@ try:
   from ubuntu_theme import *
 except ImportError:
   pass
+{% elif default_theme %}
+CUSTOM_THEME_PATH = 'themes/{{ default_theme }}'
 {% endif %}
 
 # Default Ubuntu apache configuration uses /horizon as the application root.
