@@ -74,6 +74,7 @@ BASE_PACKAGES = [
     'python-keystoneclient',
     'python-memcache',
     'python-novaclient',
+    'python-murano-dashboard',
 ]
 
 VERSION_PACKAGE = 'openstack-dashboard'
