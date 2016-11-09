@@ -83,6 +83,52 @@ from base64 import b64decode
 hooks = Hooks()
 CONFIGS = register_configs()
 
+def patch_murano_dashboard_template_fix():
+'''
+    Patch for BUG#1579681 - Murano-dashboard throws exception in Xenial
+    We will delete this function once the bug is closed.
+'''    
+    import os
+    import shutil, errno
+    try:
+        from git import Repo
+    except ImportError:
+        from charmhelpers.fetch import apt_install
+        apt_install("python-git")
+        from git import Repo
+
+    def git_download(repo, branch, dst):
+        if os.path.exists(dst):
+           log("Directory {0} already exists".format(dst))
+           return
+        log("Starting to download from git {0}".format(repo))
+        repo = Repo.clone_from(repo, dst)
+        repo.git.checkout(branch)
+
+    def copy_dir(src, dst):
+        try:
+           log("Copying directory {0} to {1}".format(src, dst))
+           shutil.copytree(src, dst)
+        except OSError as exc: # python >2.5
+           if exc.errno == errno.ENOTDIR:
+              shutil.copy(src, dst)
+           else: raise
+
+    murano_dashboard_repo = "https://github.com/openstack/murano-dashboard.git"
+    murano_dashboard_branch = "2.0.0.0rc1"
+    src = "/tmp/murano_dashboard"
+    dst = "/usr/lib/python2.7/dist-packages/muranodashboard"
+    src_copy_dir = src + "/muranodashboard/templates/"
+    dst_copy_dir = dst + "/templates"
+
+    if os.path.exists(dst_copy_dir):
+        log("Murano-dashboard directory {0} already exist".format(dst_copy_dir))
+        return
+
+    git_download(murano_dashboard_repo, murano_dashboard_branch, src)
+    copy_dir(src_copy_dir, dst_copy_dir)
+    shutil.rmtree(src)
+
 
 @hooks.hook('install.real')
 @harden()
@@ -104,7 +150,7 @@ def install():
 
     status_set('maintenance', 'Git install')
     git_install(config('openstack-origin-git'))
-
+    patch_murano_dashboard_template_fix()
 
 @hooks.hook('upgrade-charm')
 @restart_on_change(restart_map(), stopstart=True, sleep=3)
