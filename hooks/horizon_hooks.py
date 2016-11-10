@@ -84,10 +84,6 @@ hooks = Hooks()
 CONFIGS = register_configs()
 
 def patch_murano_dashboard_template_fix():
-'''
-    Patch for BUG#1579681 - Murano-dashboard throws exception in Xenial
-    We will delete this function once the bug is closed.
-'''    
     import os
     import shutil, errno
     try:
